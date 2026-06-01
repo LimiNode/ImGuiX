@@ -52,7 +52,7 @@ namespace ImGuiX::Config {
     constexpr float GRAB_ROUNDING        = 4.0f;
 
     /// \brief Window padding.
-    constexpr ImVec2 WINDOW_PADDING       = ImVec2(4.0f, 4.0f);
+    constexpr ImVec2 WINDOW_PADDING       = ImVec2(0.0f, 0.0f);
 
     /// \brief Spacing between items.
     constexpr ImVec2 ITEM_SPACING         = ImVec2(6.0f, 2.0f);

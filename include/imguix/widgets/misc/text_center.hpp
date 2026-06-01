@@ -27,6 +27,12 @@ namespace ImGuiX::Widgets {
     /// \param wrap_width Wrap width in pixels; if <= 0 uses available width.
     /// \note Creates centered child of the target width and calls TextWrapped inside.
     void TextWrappedCentered(const char* text, float wrap_width = 0.0f);
+
+    /// \brief Center each line of a wrapped/multiline text block.
+    /// \param text Text to render.
+    /// \param wrap_width Wrap width in pixels; if <= 0 uses available width.
+    /// \note Explicit newlines are preserved; long words wider than the wrap width are left aligned.
+    void TextWrappedLinesCentered(const char* text, float wrap_width = 0.0f);
     
     /// \brief Overload for std::string (unformatted).
     /// \param s UTF-8 string to render.
@@ -41,6 +47,13 @@ namespace ImGuiX::Widgets {
         TextWrappedCentered(s.c_str(), wrap_width);
     }
 
+    /// \brief Overload for std::string (wrapped line-by-line centered).
+    /// \param s Text to render.
+    /// \param wrap_width Wrap width in pixels; if <= 0 uses available width.
+    inline void TextWrappedLinesCentered(const std::string& s, float wrap_width = 0.0f) {
+        TextWrappedLinesCentered(s.c_str(), wrap_width);
+    }
+
 #ifdef IMGUIX_DEMO
     /// \brief Render demo for centered text helpers.
     inline void DemoTextCenter() {
@@ -51,6 +64,10 @@ namespace ImGuiX::Widgets {
         TextWrappedCentered(
             "This is a long message that demonstrates how wrapped text can be visually centered "
             "by placing it inside a centered child region.",
+            420.0f
+        );
+        TextWrappedLinesCentered(
+            "This helper wraps text and centers every produced line independently.",
             420.0f
         );
     }

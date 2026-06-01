@@ -8,6 +8,7 @@
 #include <imguix/widgets/auth/auth_js_panel.hpp>
 #include <imguix/widgets/auth/auth_panel.hpp>
 #include <imguix/widgets/auth/domain_selector.hpp>
+#include <imguix/widgets/auth/proxy_endpoint_fields.hpp>
 #include <imguix/widgets/auth/proxy_panel.hpp>
 
 #include <imguix/widgets/controls/circle_button.hpp>

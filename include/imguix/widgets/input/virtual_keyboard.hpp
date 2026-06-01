@@ -17,7 +17,11 @@
 #include <cctype>
 #include <cstring>
 #include <algorithm>
+#include <functional>
 #include <regex>
+#include <unordered_map>
+#include <unordered_map>
+#include <functional>
 
 #include <imguix/config/icons.hpp>
 #include <imguix/widgets/controls/icon_button.hpp>
