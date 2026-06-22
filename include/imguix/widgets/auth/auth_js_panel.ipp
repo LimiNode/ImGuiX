@@ -15,7 +15,9 @@ namespace ImGuiX::Widgets {
 
         ImGui::BeginChild(u8"##auth_js_panel", size, cfg.border);
         ImGui::TextUnformatted(cfg.header.c_str());
-        ImGui::Separator();
+        if (cfg.show_separator) {
+            ImGui::Separator();
+        }
 
         if (cfg.inputs_fill_width) ImGui::PushItemWidth(-FLT_MIN);
 

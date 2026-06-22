@@ -7,10 +7,20 @@ namespace ImGuiX::Widgets {
         bool changed = false;
 
         ImGui::PushID(id);
-        const ImVec2 size = (cfg.panel_size.x <= 0.0f || cfg.panel_size.y <= 0.0f) ?
-            ImVec2(ImGui::CalcItemWidth(),
-                   ImGui::GetTextLineHeightWithSpacing() + 4.0f * ImGui::GetFrameHeightWithSpacing()) :
-            cfg.panel_size;
+        ImVec2 size = cfg.panel_size;
+        if (size.x <= 0.0f) {
+            size.x = ImGui::CalcItemWidth();
+        }
+        if (size.y <= 0.0f) {
+            size.y = ImGui::GetTextLineHeightWithSpacing() + 4.0f * ImGui::GetFrameHeightWithSpacing();
+            if (cfg.show_check_results) {
+                size.y += ImGui::GetTextLineHeightWithSpacing();
+                if (!cfg.check_results.empty()) {
+                    size.y += ImGui::GetTextLineHeightWithSpacing();
+                    size.y += static_cast<float>(cfg.check_results.size()) * ImGui::GetTextLineHeightWithSpacing();
+                }
+            }
+        }
 
         auto calc_w = [&](const char* s) -> float {
             // ширина текста + паддинги
@@ -20,7 +30,9 @@ namespace ImGuiX::Widgets {
 
         ImGui::BeginChild(u8"##proxy_panel", size, cfg.border);
         ImGui::Text(u8"%s", cfg.header ? cfg.header : u8"Proxy");
-        ImGui::Separator();
+        if (cfg.show_separator) {
+            ImGui::Separator();
+        }
 
         if (cfg.inputs_fill_width) ImGui::PushItemWidth(-FLT_MIN);
 
@@ -196,6 +208,37 @@ namespace ImGuiX::Widgets {
                 ImGui::PopStyleColor();
             } else {
                 ImGui::RadioButton(cfg.label_checked, false);
+            }
+        }
+
+        if (cfg.show_check_results) {
+            if (ImGui::TreeNodeEx(
+                    cfg.label_check_results,
+                    ImGuiTreeNodeFlags_SpanAvailWidth)) {
+                if (ImGui::BeginTable(
+                        "##proxy_check_results",
+                        3,
+                        ImGuiTableFlags_SizingStretchProp |
+                            ImGuiTableFlags_RowBg |
+                            ImGuiTableFlags_BordersInnerV)) {
+                    ImGui::TableSetupColumn(cfg.label_geo);
+                    ImGui::TableSetupColumn(cfg.label_ip);
+                    ImGui::TableSetupColumn(cfg.label_ping);
+                    ImGui::TableHeadersRow();
+
+                    for (const auto& row : cfg.check_results) {
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::TextUnformatted(row.geo.c_str());
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::TextUnformatted(row.ip.c_str());
+                        ImGui::TableSetColumnIndex(2);
+                        ImGui::TextUnformatted(row.ping.c_str());
+                    }
+
+                    ImGui::EndTable();
+                }
+                ImGui::TreePop();
             }
         }
 

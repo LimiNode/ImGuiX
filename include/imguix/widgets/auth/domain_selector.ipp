@@ -19,9 +19,51 @@ namespace ImGuiX::Widgets {
 
         ImGui::BeginChild(u8"##DomainSelector", size, cfg.border);
         ImGui::TextUnformatted(cfg.header.c_str());
-        ImGui::Separator();
+        if (cfg.show_separator) {
+            ImGui::Separator();
+        }
 
-        if (cfg.inputs_fill_width) ImGui::PushItemWidth(-FLT_MIN);
+        const auto effective_help_style = [&](bool has_domain_combo) {
+            if (cfg.help_style != DomainSelectorHelpStyle::Auto) {
+                return cfg.help_style;
+            }
+            return has_domain_combo
+                ? DomainSelectorHelpStyle::TextQuestion
+                : DomainSelectorHelpStyle::HelpIcon;
+        };
+
+        const auto help_marker_width = [&](bool has_domain_combo) {
+            if (!cfg.show_help) {
+                return 0.0f;
+            }
+            const DomainSelectorHelpStyle style = effective_help_style(has_domain_combo);
+            const char* marker_text = style == DomainSelectorHelpStyle::HelpIcon
+                ? (cfg.help_icon ? cfg.help_icon : IMGUIX_ICON_HELP)
+                : u8"(?)";
+            return ImGui::CalcTextSize(marker_text).x + ImGui::GetStyle().ItemSpacing.x;
+        };
+
+        const auto set_fill_width = [&](float reserved_width = 0.0f) {
+            if (cfg.inputs_fill_width) {
+                ImGui::SetNextItemWidth(std::max(1.0f, ImGui::GetContentRegionAvail().x - reserved_width));
+            }
+        };
+
+        const auto draw_help_marker = [&](bool has_domain_combo) {
+            const DomainSelectorHelpStyle style = effective_help_style(has_domain_combo);
+            if (style == DomainSelectorHelpStyle::HelpIcon) {
+                ImGuiX::Widgets::HelpMarker(
+                    cfg.help_text.c_str(),
+                    MarkerMode::TooltipOnly,
+                    cfg.help_icon ? cfg.help_icon : IMGUIX_ICON_HELP
+                );
+            } else {
+                ImGui::TextDisabled(u8"(?)");
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip(u8"%s", cfg.help_text.c_str());
+                }
+            }
+        };
 
         bool updated = false;
         bool use_input = false;
@@ -38,6 +80,7 @@ namespace ImGuiX::Widgets {
             if (combo_index < 0) combo_index = static_cast<int>(items.size()) - 1;
             if (combo_index >= static_cast<int>(items.size())) combo_index = static_cast<int>(items.size()) - 1;
 
+            set_fill_width(help_marker_width(true));
             if (ImGui::Combo(
                     u8"##domain.combo",
                     &combo_index,
@@ -60,9 +103,7 @@ namespace ImGuiX::Widgets {
 
             if (cfg.show_help) {
                 ImGui::SameLine();
-                ImGui::TextDisabled(u8"(?)");
-                if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip(u8"%s", cfg.help_text.c_str());
+                draw_help_marker(true);
             }
         } else {
             use_input = true;
@@ -73,6 +114,7 @@ namespace ImGuiX::Widgets {
             if (updated) {
                 ImGui::SetKeyboardFocusHere(0);
             }
+            set_fill_width(cfg.domains.empty() ? help_marker_width(false) : 0.0f);
             if (cfg.vk_enabled) {
                 if (InputTextWithVKValidated(
                         u8"##domain.input",
@@ -106,10 +148,8 @@ namespace ImGuiX::Widgets {
 
         if (cfg.domains.empty() && cfg.show_help) {
             ImGui::SameLine();
-            ImGuiX::Widgets::HelpMarker(cfg.help_text.c_str());
+            draw_help_marker(false);
         }
-
-        if (cfg.inputs_fill_width) ImGui::PopItemWidth();
 
         ImGui::EndChild();
         ImGui::PopID();

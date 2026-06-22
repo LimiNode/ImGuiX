@@ -41,6 +41,8 @@ namespace ImGuiX::Widgets {
         bool left_panel_bordered = true;            ///< Border or background for left checkbox panel.
         bool cap_by_avail_y      = false;           ///< Limit height by available space.
         bool show_tooltip        = true;            ///< Enable tooltips.
+        bool input_enabled       = true;            ///< Enable plot mouse input for this frame.
+        bool show_plot_header    = true;            ///< Show header row inside the plot panel.
         bool force_all_visible  = false;            ///< If true: all series are always plotted; left panel is hidden; menu shows only annotations.
         bool use_sticky_select  = false;            ///< Click list items to toggle instead of drag-and-drop.
         bool legend_force_off   = false;              ///< Жёстко отключить легенду (игнорирует state.show_legend)

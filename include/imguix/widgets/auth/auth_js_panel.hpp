@@ -24,6 +24,7 @@ namespace ImGuiX::Widgets {
         ImVec2      panel_size = ImVec2(0.0f, 0.0f); ///< x<=0: fill available width; y<=0: auto-computed
         bool        inputs_fill_width = true;        ///< make input fields fill panel width
         bool        border            = true;       ///< draw panel border
+        bool        show_separator    = true;       ///< show separator after header
 
         // Labels / hints
         std::string header               = u8"JS Config";

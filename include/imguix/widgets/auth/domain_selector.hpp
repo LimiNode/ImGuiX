@@ -11,12 +11,20 @@
 
 namespace ImGuiX::Widgets {
 
+    /// \brief Help marker appearance for DomainSelector.
+    enum class DomainSelectorHelpStyle {
+        Auto,        ///< Preserve legacy behavior: text for combo, icon for plain input.
+        TextQuestion,///< Render "(?)" text with tooltip.
+        HelpIcon     ///< Render ImGuiX HelpMarker.
+    };
+
     /// \brief Configuration for DomainSelector.
     struct DomainSelectorConfig {
         // Panel
         ImVec2      panel_size = ImVec2(0.0f, 0.0f); ///< x<=0: fill available width; y<=0: auto-computed
         bool        inputs_fill_width = true;        ///< make input fields fill panel width
         bool        border            = true;       ///< draw panel border
+        bool        show_separator    = true;       ///< show separator after header
         
         std::string header       = u8"Domain";
         std::string hint_domain  = u8"domain";
@@ -24,6 +32,8 @@ namespace ImGuiX::Widgets {
         std::string default_domain;
         std::string help_text;
         bool        show_help    = false;           ///< show help marker
+        DomainSelectorHelpStyle help_style = DomainSelectorHelpStyle::Auto;
+        const char* help_icon = IMGUIX_ICON_HELP;   ///< icon used by HelpIcon style
 
         /// \brief List of predefined domains. If empty, InputTextWithVKValidated is used directly.
         std::vector<std::string> domains;

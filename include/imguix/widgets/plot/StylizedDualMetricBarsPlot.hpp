@@ -33,6 +33,7 @@ namespace ImGuiX::Widgets {
         bool list_bordered = false; ///< Inner border for scroll list.
         bool left_panel_bordered = true; ///< Border/background for left panel.
         bool cap_by_avail_y = false; ///< Limit height by available space.
+        bool input_enabled = true; ///< Enable plot mouse input for this frame.
         bool force_all_visible = false; ///< Plot every category and hide left panel.
         bool use_sticky_select = false; ///< Click list items to toggle instead of DND.
         bool legend_force_off = false; ///< Force legend off regardless of state.

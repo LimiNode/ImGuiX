@@ -240,7 +240,7 @@ namespace ImGuiX::Widgets {
                         c.data.line_y[k].data(),
                         static_cast<int>(c.data.line_y[k].size())
                 );
-                if (!c.cfg.use_sticky_select && ImPlot::BeginDragDropSourceItem(it.label.data())) {
+                if (c.cfg.input_enabled && !c.cfg.use_sticky_select && ImPlot::BeginDragDropSourceItem(it.label.data())) {
                     ImGui::SetDragDropPayload(c.cfg.dnd_payload, &k, sizeof(int));
                     ImPlot::ItemIcon(it.color);
                     ImGui::SameLine();
@@ -249,7 +249,7 @@ namespace ImGuiX::Widgets {
                 }
             }
 
-            if (c.cfg.show_tooltip && ImPlot::IsPlotHovered()) {
+            if (c.cfg.input_enabled && c.cfg.show_tooltip && ImPlot::IsPlotHovered()) {
                 const ImPlotPoint mp = ImPlot::GetPlotMousePos();
                 const ImVec2 mp_px = ImPlot::PlotToPixels(mp);
 
@@ -360,7 +360,7 @@ namespace ImGuiX::Widgets {
                     );
                 }
 
-                if (!c.cfg.use_sticky_select && ImPlot::BeginDragDropSourceItem(it.label.data())) {
+                if (c.cfg.input_enabled && !c.cfg.use_sticky_select && ImPlot::BeginDragDropSourceItem(it.label.data())) {
                     ImGui::SetDragDropPayload(c.cfg.dnd_payload, &k, sizeof(int));
                     ImPlot::ItemIcon(it.color);
                     ImGui::SameLine();
@@ -370,7 +370,7 @@ namespace ImGuiX::Widgets {
                 ++i;
             }
 
-            if (c.cfg.show_tooltip && ImPlot::IsPlotHovered()) {
+            if (c.cfg.input_enabled && c.cfg.show_tooltip && ImPlot::IsPlotHovered()) {
                 ImPlotPoint mp = ImPlot::GetPlotMousePos();
                 int best_k = -1;
                 double best_dx = 1e9;
@@ -413,7 +413,7 @@ namespace ImGuiX::Widgets {
 
         inline void draw_context_popup(Ctx& c) {
             // Context menu for plot settings.
-            if (ImPlot::IsPlotHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+            if (c.cfg.input_enabled && ImPlot::IsPlotHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
                 ImGui::OpenPopup("##custom_menu");
             }
 
@@ -442,6 +442,9 @@ namespace ImGuiX::Widgets {
 
             int flags = ImPlotFlags_None | ImPlotFlags_NoMenus | ImPlotFlags_NoFrame; // убрала 
             flags |= want_legend ? ImPlotFlags_None : ImPlotFlags_NoLegend;
+            if (!c.cfg.input_enabled) {
+                flags |= ImPlotFlags_NoInputs;
+            }
 
             if (c.state.update_counter > 0) {
                 if (c.state.update_counter == kUpdateCounterMax || c.state.update_counter == 1) {
@@ -471,7 +474,7 @@ namespace ImGuiX::Widgets {
                         draw_bars(c);
                     }
 
-                    if (!c.cfg.use_sticky_select && ImPlot::BeginDragDropTargetPlot()) {
+                    if (c.cfg.input_enabled && !c.cfg.use_sticky_select && ImPlot::BeginDragDropTargetPlot()) {
                         if (const ImGuiPayload* payload =
                                 ImGui::AcceptDragDropPayload(c.cfg.dnd_payload)) {
                             int i = *static_cast<const int*>(payload->Data);
@@ -495,7 +498,7 @@ namespace ImGuiX::Widgets {
                         ImPlot::EndDragDropTarget();
                     }
 
-                    if (!c.cfg.use_sticky_select && ImPlot::BeginDragDropTargetLegend()) {
+                    if (c.cfg.input_enabled && !c.cfg.use_sticky_select && ImPlot::BeginDragDropTargetLegend()) {
                         if (const ImGuiPayload* payload =
                                 ImGui::AcceptDragDropPayload(c.cfg.dnd_payload)) {
                             int i = *static_cast<const int*>(payload->Data);
@@ -519,7 +522,7 @@ namespace ImGuiX::Widgets {
                         ImPlot::EndDragDropTarget();
                     }
 
-                    if (ImPlot::IsPlotHovered()) {
+                    if (c.cfg.input_enabled && ImPlot::IsPlotHovered()) {
                         ImPlotPoint mouse_pos = ImPlot::GetPlotMousePos();
                         static ImPlotDragToolFlags tool_flags =
                             ImPlotDragToolFlags_None | ImPlotDragToolFlags_NoInputs;
@@ -527,7 +530,9 @@ namespace ImGuiX::Widgets {
                         ImPlot::DragLineY(2, &mouse_pos.y, c.cfg.drag_line_color, 1, tool_flags);
                     }
 
-                    draw_context_popup(c);
+                    if (c.cfg.input_enabled) {
+                        draw_context_popup(c);
+                    }
 
                     ImPlot::EndPlot();
                 }
@@ -597,17 +602,21 @@ namespace ImGuiX::Widgets {
             }
         }
         stylized_metrics_plot_detail::begin_right_child(c);
-        ImGui::Text(c.cfg.plot_header);
-        if (!c.cfg.force_all_visible) {
-            ImGui::SameLine();
-            std::string show_side_panel_bttn_name = "show_side_panel_bttn";
-            std::string show_side_panel_bttn_icon = c.state.show_left_panel ? u8"\uf054" : u8"\uf053";
-            if (ImGuiX::Widgets::IconButtonCentered(show_side_panel_bttn_name.c_str(), show_side_panel_bttn_icon.c_str(), c.cfg.show_side_panel_cfg)) {
-                c.state.show_left_panel = !c.state.show_left_panel;
+        if (c.cfg.show_plot_header) {
+            ImGui::Text(c.cfg.plot_header);
+            if (!c.cfg.force_all_visible) {
+                ImGui::SameLine();
+                std::string show_side_panel_bttn_name = "show_side_panel_bttn";
+                std::string show_side_panel_bttn_icon = c.state.show_left_panel ? u8"\uf054" : u8"\uf053";
+                if (!c.cfg.input_enabled) ImGui::BeginDisabled();
+                if (ImGuiX::Widgets::IconButtonCentered(show_side_panel_bttn_name.c_str(), show_side_panel_bttn_icon.c_str(), c.cfg.show_side_panel_cfg)) {
+                    c.state.show_left_panel = !c.state.show_left_panel;
+                }
+                if (!c.cfg.input_enabled) ImGui::EndDisabled();
             }
-        }
-        if (c.cfg.force_all_visible && c.cfg.show_annotation_checkbox) {
-            stylized_metrics_plot_detail::draw_annotation(c);
+            if (c.cfg.force_all_visible && c.cfg.show_annotation_checkbox) {
+                stylized_metrics_plot_detail::draw_annotation(c);
+            }
         }
         stylized_metrics_plot_detail::draw_plot(c);
         stylized_metrics_plot_detail::end_right_child();

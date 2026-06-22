@@ -97,7 +97,10 @@ namespace ImGuiX::Widgets {
         bool show_token            = false;
         bool show_api_keys         = false; ///< public + secret
         bool mask_api_secret       = true;  ///< show secret as password
+        bool show_header           = true;  ///< show header text
+        bool show_separator        = true;  ///< show separator after header
         bool show_connect_button   = true;
+        bool show_connect_separator= true;  ///< show separator before connection controls
         bool show_connection_state = true;
 
         // Validation toggles

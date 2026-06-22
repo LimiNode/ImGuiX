@@ -11,6 +11,7 @@
 #include <regex>
 #include <algorithm>
 #include <cstring>
+#include <vector>
 
 #include <imguix/config/colors.hpp>
 
@@ -34,11 +35,19 @@ namespace ImGuiX::Widgets {
         bool password_valid  = true; ///< out
     };
 
+    /// \brief Read-only row with proxy check diagnostics.
+    struct ProxyCheckResultRow {
+        std::string geo;   ///< Geo/location label.
+        std::string ip;    ///< Resolved/check IP.
+        std::string ping;  ///< Ping text, e.g. "42 ms".
+    };
+
     /// \brief UI configuration for ProxyPanel.
     struct ProxyPanelConfig {
         ImVec2 panel_size             = ImVec2(0, 0); ///< 0→auto width/height
         bool   inputs_fill_width      = true;         ///< make input fields fill panel width
         bool   border                 = true;         ///< draw panel border
+        bool   show_separator         = true;         ///< show separator after header
 
         // Labels
         const char* header            = u8"Proxy settings";
@@ -49,12 +58,18 @@ namespace ImGuiX::Widgets {
         const char* label_use_proxy   = u8"use proxy";
         const char* button_check      = u8"check proxy";
         const char* label_checked     = u8"checked";
+        const char* label_check_results = u8"Check results";
+        const char* label_geo         = u8"Geo";
+        const char* label_ip          = u8"IP";
+        const char* label_ping        = u8"Ping";
 
         // Options
         bool show_type                = true;   ///< show type combo (HTTP/SOCKS)
         bool show_check               = true;   ///< show "check proxy" button + status
+        bool show_check_results       = true;   ///< show check results tree/table
         bool checked                  = false;  ///< result of last check (visual only)
         bool check_ok                 = false;  ///< last check OK (green) vs fail (red)
+        std::vector<ProxyCheckResultRow> check_results;
 
         // Virtual keyboard configs (shared across fields)
         VirtualKeyboardConfig      vk_cfg{};   ///< behavior/locale/etc of VK

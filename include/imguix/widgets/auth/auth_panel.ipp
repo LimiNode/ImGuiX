@@ -13,7 +13,9 @@ namespace ImGuiX::Widgets {
 
 		// Compute a conservative height to keep the child stable.
 		float height = 0.0f;
-		height += ImGui::GetTextLineHeightWithSpacing(); // header
+        if (cfg.show_header) {
+            height += ImGui::GetTextLineHeightWithSpacing();
+        }
 		height = std::max(height, ImGui::GetFrameHeightWithSpacing());
 
         if (cfg.show_host)      height += ImGui::GetFrameHeightWithSpacing();
@@ -30,8 +32,12 @@ namespace ImGuiX::Widgets {
 
         ImGui::BeginChild(u8"##AuthPanel", size, true);
 
-        ImGui::TextUnformatted(cfg.header);
-        ImGui::Separator();
+        if (cfg.show_header) {
+            ImGui::TextUnformatted(cfg.header ? cfg.header : "");
+            if (cfg.show_separator) {
+                ImGui::Separator();
+            }
+        }
 
         if (cfg.inputs_fill_width) ImGui::PushItemWidth(-FLT_MIN);
 
@@ -180,7 +186,9 @@ namespace ImGuiX::Widgets {
 
         // Connection button
         if (cfg.show_connect_button) {
-            ImGui::Separator();
+            if (cfg.show_connect_separator) {
+                ImGui::Separator();
+            }
             // Connection state + action
             if (cfg.show_connection_state) {
                 if (cfg.init) {
