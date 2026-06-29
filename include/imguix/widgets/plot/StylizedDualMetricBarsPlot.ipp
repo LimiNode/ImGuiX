@@ -50,6 +50,35 @@ namespace ImGuiX::Widgets {
             return count;
         }
 
+        inline void same_line_right_aligned_checkbox(const char* label) {
+            const ImGuiStyle& style = ImGui::GetStyle();
+            const float checkbox_w =
+                ImGui::GetFrameHeight() +
+                style.ItemInnerSpacing.x +
+                ImGui::CalcTextSize(label).x;
+            const float right_x = ImGui::GetWindowContentRegionMax().x;
+
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImMax(
+                ImGui::GetCursorPosX(),
+                right_x - checkbox_w));
+        }
+
+        inline float calc_checkbox_stack_height(int count) {
+            if (count <= 0) return 0.0f;
+            const ImGuiStyle& style = ImGui::GetStyle();
+            return ImGui::GetFrameHeight() * static_cast<float>(count) +
+                style.ItemSpacing.y * static_cast<float>(count - 1);
+        }
+
+        inline void align_next_block_to_bottom(float block_h) {
+            if (block_h <= 0.0f) return;
+            const float bottom_y = ImGui::GetWindowContentRegionMax().y;
+            ImGui::SetCursorPosY(ImMax(
+                ImGui::GetCursorPosY(),
+                bottom_y - block_h));
+        }
+
         inline DualMetricBarsData make_filtered_data(Ctx& c) {
             DualMetricBarsData filtered;
             filtered.title = c.data.title;
@@ -75,35 +104,38 @@ namespace ImGuiX::Widgets {
             return filtered;
         }
 
-        inline void draw_controls(Ctx& c) {
+        inline void draw_controls(Ctx& c, bool align_checkboxes_to_bottom = false) {
             const bool controls_disabled = !c.cfg.input_enabled;
             if (controls_disabled) ImGui::BeginDisabled();
+
+            if (!c.cfg.force_all_visible) {
+                if (ImGui::Button(c.cfg.button_show_all, ImVec2(c.btn_w, 0))) {
+                    for (auto& it : c.state.dnd) it.is_plot = true;
+                    c.plotted = static_cast<int>(c.state.dnd.size());
+                    c.state.plot_state.update_counter = kUpdateCounterMax;
+                }
+
+                if (ImGui::Button(c.cfg.button_reset, ImVec2(c.btn_w, 0))) {
+                    for (auto& it : c.state.dnd) it.is_plot = false;
+                    c.plotted = 0;
+                    c.state.plot_state.update_counter = kUpdateCounterMax;
+                }
+            }
+
+            const bool show_legend_checkbox = !c.cfg.legend_force_off;
+            if (align_checkboxes_to_bottom) {
+                align_next_block_to_bottom(calc_checkbox_stack_height(
+                    1 + static_cast<int>(show_legend_checkbox)));
+            }
 
             if (ImGui::Checkbox(c.cfg.annotation_checkbox, &c.state.plot_state.show_annotations)) {
                 c.state.plot_state.update_counter = kUpdateCounterMax;
             }
 
-            if (!c.cfg.legend_force_off) {
+            if (show_legend_checkbox) {
                 if (ImGui::Checkbox(c.cfg.legend_checkbox, &c.state.plot_state.show_legend)) {
                     c.state.plot_state.update_counter = kUpdateCounterMax;
                 }
-            }
-
-            if (c.cfg.force_all_visible) {
-                if (controls_disabled) ImGui::EndDisabled();
-                return;
-            }
-
-            if (ImGui::Button(c.cfg.button_show_all, ImVec2(c.btn_w, 0))) {
-                for (auto& it : c.state.dnd) it.is_plot = true;
-                c.plotted = static_cast<int>(c.state.dnd.size());
-                c.state.plot_state.update_counter = kUpdateCounterMax;
-            }
-
-            if (ImGui::Button(c.cfg.button_reset, ImVec2(c.btn_w, 0))) {
-                for (auto& it : c.state.dnd) it.is_plot = false;
-                c.plotted = 0;
-                c.state.plot_state.update_counter = kUpdateCounterMax;
             }
 
             if (controls_disabled) ImGui::EndDisabled();
@@ -181,7 +213,7 @@ namespace ImGuiX::Widgets {
                 }
                 ImGui::EndChild();
 
-                draw_controls(c);
+                draw_controls(c, true);
             }
             ImGui::EndChild();
 
@@ -454,7 +486,7 @@ namespace ImGuiX::Widgets {
         ImGui::TextUnformatted(c.cfg.plot_header);
         if (!c.cfg.force_all_visible) {
             ImGui::SameLine();
-            const char* icon = c.state.show_left_panel ? "\xef\x81\x94" : "\xef\x81\x93";
+            const char* icon = c.state.show_left_panel ? "\xef\x81\x93" : "\xef\x81\x94";
             if (!c.cfg.input_enabled) ImGui::BeginDisabled();
             if (ImGuiX::Widgets::IconButtonCentered(
                     "show_side_panel_bttn",
@@ -467,7 +499,8 @@ namespace ImGuiX::Widgets {
             if (!c.cfg.input_enabled) ImGui::EndDisabled();
         }
         if (c.cfg.force_all_visible && c.cfg.show_annotation_checkbox) {
-            ImGui::SameLine();
+            stylized_dual_metric_bars_plot_detail::same_line_right_aligned_checkbox(
+                c.cfg.annotation_checkbox);
             if (!c.cfg.input_enabled) ImGui::BeginDisabled();
             if (ImGui::Checkbox(c.cfg.annotation_checkbox, &c.state.plot_state.show_annotations)) {
                 c.state.plot_state.update_counter =

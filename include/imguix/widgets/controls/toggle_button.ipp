@@ -4,17 +4,29 @@
 
 namespace ImGuiX::Widgets {
 
-    IMGUIX_IMPL_INLINE void ToggleButton(const char* id, bool* state) {
+    IMGUIX_IMPL_INLINE void ToggleButton(const char* id, bool* state, const ToggleButtonConfig& config) {
         // Geometry
-        const float h = ImGui::GetFrameHeight();
-        const float w = h * 1.55f;
+        const float default_h = ImGui::GetFrameHeight();
+        const float h = config.size.y > 0.0f ? config.size.y :
+            (config.height > 0.0f ? config.height : default_h);
+        const float w = config.size.x > 0.0f ? config.size.x : h * 1.55f;
         const float r = h * 0.50f;
+        const bool has_offset = config.offset.x != 0.0f || config.offset.y != 0.0f;
 
-        ImVec2 pos = ImGui::GetCursorScreenPos();
+        const ImVec2 cursor_pos = ImGui::GetCursorPos();
+        if (has_offset) {
+            ImGui::SetCursorPos(ImVec2(cursor_pos.x + config.offset.x, cursor_pos.y + config.offset.y));
+        }
+
+        const ImVec2 pos = ImGui::GetCursorScreenPos();
         ImDrawList* dl = ImGui::GetWindowDrawList();
 
         // Click area
         ImGui::InvisibleButton(id, ImVec2(w, h));
+        if (has_offset && config.restore_cursor_after_offset) {
+            const ImVec2 cursor_after_item = ImGui::GetCursorPos();
+            ImGui::SetCursorPos(ImVec2(cursor_after_item.x - config.offset.x, cursor_after_item.y - config.offset.y));
+        }
         if (ImGui::IsItemClicked() && state) *state = !*state;
 
         // --- Animation (public API) -----------------------------------------
@@ -24,8 +36,9 @@ namespace ImGuiX::Widgets {
         const ImGuiID key_anim = ImGui::GetID("anim");
         ImGui::PopID();
 
-        float anim = st->GetFloat(key_anim, (*state ? 1.0f : 0.0f));
-        const float target = (*state ? 1.0f : 0.0f);
+        const bool is_on = state && *state;
+        float anim = st->GetFloat(key_anim, (is_on ? 1.0f : 0.0f));
+        const float target = (is_on ? 1.0f : 0.0f);
 
         // Linear approach to target with ~0.08s time to settle (like old kAnimSpeed)
         const float dt = ImGui::GetIO().DeltaTime;
@@ -50,13 +63,11 @@ namespace ImGuiX::Widgets {
 
         // Colors
         const bool hovered = ImGui::IsItemHovered();
-        const ImVec4 off_hov = ImVec4(0.78f, 0.78f, 0.78f, 1.0f);
-        const ImVec4 on_hov  = ImVec4(0.64f, 0.83f, 0.34f, 1.0f);
-        const ImVec4 off     = ImVec4(0.85f, 0.85f, 0.85f, 1.0f);
-        const ImVec4 on      = ImVec4(0.56f, 0.83f, 0.26f, 1.0f);
-
-        const ImU32 col_bg = ImGui::GetColorU32( hovered ? lerp4(off_hov, on_hov, t)
-                                                          : lerp4(off,     on,     t) );
+        const ImU32 col_bg = ImGui::GetColorU32(
+                hovered ?
+                    lerp4(config.off_hovered_color, config.on_hovered_color, t) :
+                    lerp4(config.off_color, config.on_color, t)
+        );
 
         // Track background
         dl->AddRectFilled(
@@ -73,8 +84,8 @@ namespace ImGuiX::Widgets {
 
         dl->AddCircleFilled(
             ImVec2(x, pos.y + r),
-            r - 1.5f,
-            IM_COL32(255,255,255,255)
+            std::max(0.0f, r - 1.5f),
+            ImGui::GetColorU32(config.knob_color)
         );
     }
 

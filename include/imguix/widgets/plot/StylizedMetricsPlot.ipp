@@ -61,15 +61,78 @@ namespace ImGuiX::Widgets {
             return true;
         }
 
-        inline void draw_controls(Ctx& c) {
+        inline void toggle_plot_item(Ctx& c, StylizedMetricsPlotState::DndItem& item) {
+            item.is_plot = !item.is_plot;
+            c.plotted += item.is_plot ? 1 : -1;
+            if (item.is_plot && c.state.show_legend && c.plotted >= c.cfg.max_visible) {
+                c.state.show_legend = false;
+            }
+            c.state.update_counter = kUpdateCounterMax;
+        }
+
+        inline float calc_checkbox_stack_height(int count) {
+            if (count <= 0) return 0.0f;
+            const ImGuiStyle& style = ImGui::GetStyle();
+            return ImGui::GetFrameHeight() * static_cast<float>(count) +
+                style.ItemSpacing.y * static_cast<float>(count - 1);
+        }
+
+        inline void align_next_block_to_bottom(float block_h) {
+            if (block_h <= 0.0f) return;
+            const float bottom_y = ImGui::GetWindowContentRegionMax().y;
+            ImGui::SetCursorPosY(ImMax(
+                ImGui::GetCursorPosY(),
+                bottom_y - block_h));
+        }
+
+        inline void same_line_right_aligned_checkbox(const char* label) {
+            const ImGuiStyle& style = ImGui::GetStyle();
+            const float checkbox_w =
+                ImGui::GetFrameHeight() +
+                style.ItemInnerSpacing.x +
+                ImGui::CalcTextSize(label).x;
+            const float right_x = ImGui::GetWindowContentRegionMax().x;
+
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImMax(
+                ImGui::GetCursorPosX(),
+                right_x - checkbox_w));
+        }
+
+        inline void draw_controls(Ctx& c, bool align_checkboxes_to_bottom = false) {
             // Checkboxes and action buttons shared by panels.
-            if (!c.data.values.empty()) {
+            const bool controls_disabled = !c.cfg.input_enabled;
+            if (controls_disabled) ImGui::BeginDisabled();
+
+            if (!c.cfg.force_all_visible) {
+                if (ImGui::Button(c.cfg.button_show_all, ImVec2(c.btn_w, 0))) {
+                    if (c.state.dnd.size() >= static_cast<size_t>(c.cfg.max_visible)) {
+                        c.state.show_legend = false;
+                    }
+                    for (auto& it : c.state.dnd) it.is_plot = true;
+                    c.state.update_counter = kUpdateCounterMax;
+                }
+
+                if (ImGui::Button(c.cfg.button_reset, ImVec2(c.btn_w, 0))) {
+                    for (auto& it : c.state.dnd) it.is_plot = false;
+                }
+            }
+
+            const bool show_annotation_checkbox = !c.data.values.empty();
+            const bool show_legend_checkbox = !c.cfg.legend_force_off;
+            if (align_checkboxes_to_bottom) {
+                align_next_block_to_bottom(calc_checkbox_stack_height(
+                    static_cast<int>(show_annotation_checkbox) +
+                    static_cast<int>(show_legend_checkbox)));
+            }
+
+            if (show_annotation_checkbox) {
                 if (ImGui::Checkbox(c.cfg.annotation_checkbox, &c.state.show_annotation)) {
                     c.state.update_counter = kUpdateCounterMax;
                 }
             }
             
-            if (!c.cfg.legend_force_off) {
+            if (show_legend_checkbox) {
                 if (!c.state.show_legend && c.plotted >= c.cfg.max_visible) {
                     ImGui::BeginDisabled(true);
                     ImGui::Checkbox(c.cfg.legend_checkbox, &c.state.show_legend);
@@ -79,19 +142,7 @@ namespace ImGuiX::Widgets {
                 }
             }
 
-            if (c.cfg.force_all_visible) return;
-
-            if (ImGui::Button(c.cfg.button_show_all, ImVec2(c.btn_w, 0))) {
-                if (c.state.dnd.size() >= static_cast<size_t>(c.cfg.max_visible)) {
-                    c.state.show_legend = false;
-                }
-                for (auto& it : c.state.dnd) it.is_plot = true;
-                c.state.update_counter = kUpdateCounterMax;
-            }
-
-            if (ImGui::Button(c.cfg.button_reset, ImVec2(c.btn_w, 0))) {
-                for (auto& it : c.state.dnd) it.is_plot = false;
-            }
+            if (controls_disabled) ImGui::EndDisabled();
         }
 
         inline void draw_left_panel(Ctx& c) {
@@ -120,12 +171,13 @@ namespace ImGuiX::Widgets {
 
                 ImGui::BeginChild("##dnd_scroll", ImVec2(0, c.cfg.dnd_scroll_h), list_flags);
                 {
+                    if (!c.cfg.input_enabled) ImGui::BeginDisabled();
+
                     for (size_t k = 0; k < c.state.dnd.size(); ++k) {
                         auto& it = c.state.dnd[k];
-                        if (!c.cfg.use_sticky_select && it.is_plot) continue;
 
                         ImPlot::ItemIcon(it.color);
-                        if (ImGui::IsItemHovered()) {
+                        if (c.cfg.input_enabled && ImGui::IsItemHovered()) {
                             ImGui::BeginTooltip();
                             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                             ImGui::TextUnformatted(it.label.data());
@@ -134,25 +186,11 @@ namespace ImGuiX::Widgets {
                         }
 
                         ImGui::SameLine();
-                        if (c.cfg.use_sticky_select) {
-                            bool selected = it.is_plot;
-                            if (ImGui::Selectable(it.label.data(), selected, 0, ImVec2(c.dnd_w, 0))) {
-                                it.is_plot = !it.is_plot;
-                                if (it.is_plot) {
-                                    ++c.plotted;
-                                    if (c.state.show_legend && c.plotted >= c.cfg.max_visible) {
-                                        c.state.show_legend = false;
-                                        c.state.update_counter = kUpdateCounterMax;
-                                    }
-                                } else {
-                                    --c.plotted;
-                                }
-                                c.state.update_counter = kUpdateCounterMax;
-                            }
-                        } else {
-                            ImGui::Selectable(it.label.data(), false, 0, ImVec2(c.dnd_w, 0));
+                        bool selected = it.is_plot;
+                        if (ImGui::Selectable(it.label.data(), selected, 0, ImVec2(c.dnd_w, 0))) {
+                            toggle_plot_item(c, it);
                         }
-                        if (ImGui::IsItemHovered()) {
+                        if (c.cfg.input_enabled && ImGui::IsItemHovered()) {
                             ImGui::BeginTooltip();
                             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                             ImGui::TextUnformatted(it.label.data());
@@ -160,9 +198,10 @@ namespace ImGuiX::Widgets {
                             ImGui::EndTooltip();
                         }
 
-                        if (!c.cfg.use_sticky_select) {
+                        if (c.cfg.input_enabled && !c.cfg.use_sticky_select) {
                             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-                                ImGui::SetDragDropPayload(c.cfg.dnd_payload, &k, sizeof(int));
+                                const int payload_index = static_cast<int>(k);
+                                ImGui::SetDragDropPayload(c.cfg.dnd_payload, &payload_index, sizeof(payload_index));
                                 ImPlot::ItemIcon(it.color);
                                 ImGui::SameLine();
                                 ImGui::TextUnformatted(it.label.data());
@@ -171,21 +210,24 @@ namespace ImGuiX::Widgets {
                         }
                     }
 
-                    if (!c.cfg.use_sticky_select) {
+                    if (c.cfg.input_enabled && !c.cfg.use_sticky_select) {
                         if (ImGui::BeginDragDropTarget()) {
                             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(c.cfg.dnd_payload)) {
                                 int i = *static_cast<const int*>(payload->Data);
                                 if (i >= 0 && static_cast<size_t>(i) < c.state.dnd.size()) {
                                     c.state.dnd[i].is_plot = false;
+                                    c.state.update_counter = kUpdateCounterMax;
                                 }
                             }
                             ImGui::EndDragDropTarget();
                         }
                     }
+
+                    if (!c.cfg.input_enabled) ImGui::EndDisabled();
                 }
                 ImGui::EndChild();
 
-                draw_controls(c);
+                draw_controls(c, true);
             }
             ImGui::EndChild();
 
@@ -241,7 +283,8 @@ namespace ImGuiX::Widgets {
                         static_cast<int>(c.data.line_y[k].size())
                 );
                 if (c.cfg.input_enabled && !c.cfg.use_sticky_select && ImPlot::BeginDragDropSourceItem(it.label.data())) {
-                    ImGui::SetDragDropPayload(c.cfg.dnd_payload, &k, sizeof(int));
+                    const int payload_index = static_cast<int>(k);
+                    ImGui::SetDragDropPayload(c.cfg.dnd_payload, &payload_index, sizeof(payload_index));
                     ImPlot::ItemIcon(it.color);
                     ImGui::SameLine();
                     ImGui::TextUnformatted(it.label.data());
@@ -361,7 +404,8 @@ namespace ImGuiX::Widgets {
                 }
 
                 if (c.cfg.input_enabled && !c.cfg.use_sticky_select && ImPlot::BeginDragDropSourceItem(it.label.data())) {
-                    ImGui::SetDragDropPayload(c.cfg.dnd_payload, &k, sizeof(int));
+                    const int payload_index = static_cast<int>(k);
+                    ImGui::SetDragDropPayload(c.cfg.dnd_payload, &payload_index, sizeof(payload_index));
                     ImPlot::ItemIcon(it.color);
                     ImGui::SameLine();
                     ImGui::TextUnformatted(it.label.data());
@@ -426,8 +470,8 @@ namespace ImGuiX::Widgets {
         }
 
         inline void draw_annotation(Ctx& c) {
-            ImGui::SameLine();
             if (!c.data.values.empty()) {
+                same_line_right_aligned_checkbox(c.cfg.annotation_checkbox);
                 if (ImGui::Checkbox(c.cfg.annotation_checkbox, &c.state.show_annotation)) {
                     c.state.update_counter = kUpdateCounterMax;
                 }
@@ -607,7 +651,7 @@ namespace ImGuiX::Widgets {
             if (!c.cfg.force_all_visible) {
                 ImGui::SameLine();
                 std::string show_side_panel_bttn_name = "show_side_panel_bttn";
-                std::string show_side_panel_bttn_icon = c.state.show_left_panel ? u8"\uf054" : u8"\uf053";
+                std::string show_side_panel_bttn_icon = c.state.show_left_panel ? u8"\uf053" : u8"\uf054";
                 if (!c.cfg.input_enabled) ImGui::BeginDisabled();
                 if (ImGuiX::Widgets::IconButtonCentered(show_side_panel_bttn_name.c_str(), show_side_panel_bttn_icon.c_str(), c.cfg.show_side_panel_cfg)) {
                     c.state.show_left_panel = !c.state.show_left_panel;
