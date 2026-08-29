@@ -230,6 +230,10 @@ namespace ImGuiX {
         /// \brief Control interface for the font manager.
         /// \return Font manager control interface.
         ImGuiX::Fonts::FontManager::Control& fontsControl() noexcept;
+
+        /// \brief Set logical DPI used when rebuilding this window's fonts.
+        /// \param dpi Display DPI where 96 equals 1.0 scale.
+        void fontsSetDpi(float dpi);
         
         /// \brief Request window to switch its UI language.
         /// \param lang Language code.

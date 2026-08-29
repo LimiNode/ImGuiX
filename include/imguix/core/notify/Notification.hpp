@@ -9,6 +9,7 @@
 #include <chrono>
 #include <functional>
 #include <cstdarg>
+#include <optional>
 
 #include <imguix/utils/vformat.hpp> // ImGuiX::Utils::vformat_va / vformat
 
@@ -77,6 +78,13 @@ namespace ImGuiX::Notify {
         /// \brief Set notification type.
         /// \param t New type.
         void setType(Type t) { m_type = t; }
+        /// \brief Override the default color for this notification.
+        /// \param color Custom RGBA color.
+        void setColor(const ImVec4& color) { m_color_override = color; }
+        /// \brief Restore the color associated with the notification type.
+        void clearColorOverride() { m_color_override.reset(); }
+        /// \brief Check whether this notification has an explicit color.
+        bool hasColorOverride() const noexcept { return m_color_override.has_value(); }
         /// \brief Set window flags.
         /// \param flags Window flags to merge.
         void setWindowFlags(ImGuiWindowFlags flags) { m_flags = flags; }
@@ -116,6 +124,9 @@ namespace ImGuiX::Notify {
         /// \brief Color inferred from type (uses IMGUIX_NOTIFY_COLOR_*).
         /// \return RGBA color.
         ImVec4 color() const {
+            if (m_color_override.has_value()) {
+                return *m_color_override;
+            }
             switch (m_type) {
                 case Type::Success: return IMGUIX_NOTIFY_COLOR_SUCCESS;
                 case Type::Warning: return IMGUIX_NOTIFY_COLOR_WARNING;
@@ -222,6 +233,7 @@ namespace ImGuiX::Notify {
     private:
         ImGuiWindowFlags m_flags = 0;                 ///< 0 => use Config::base_window_flags
         Type m_type = Type::None;
+        std::optional<ImVec4> m_color_override;
         std::string m_title;
         std::string m_content;
         int m_dismiss_ms = 0;

@@ -17,7 +17,7 @@
 #define IMGUIX_NOTIFY_ICON_ERROR   u8"\uE000"
 
 /// \brief Information notification icon (Material: info).
-#define IMGUIX_NOTIFY_ICON_INFO    u8"\uE88E"
+#define IMGUIX_NOTIFY_ICON_INFO    u8"\uE88F"
 
 /// \brief Dismiss button icon (Material: close).
 #define IMGUIX_NOTIFY_ICON_CLOSE   u8"\uE5CD"

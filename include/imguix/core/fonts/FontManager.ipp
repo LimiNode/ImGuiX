@@ -47,6 +47,13 @@ namespace ImGuiX::Fonts {
       markDirty();
     }
 
+    inline void FontManager::setDpi(float dpi) {
+        const float clamped_dpi = std::max(1.0F, dpi);
+        if (m_params.dpi == clamped_dpi) return;
+        m_params.dpi = clamped_dpi;
+        markDirty();
+    }
+
     inline void FontManager::setLocale(std::string locale) {
         if (locale == m_active_locale) return;
         m_active_locale = std::move(locale);
@@ -889,6 +896,8 @@ namespace ImGuiX::Fonts {
                 ensure_headline(FontRole::H1, m_px_h1);
                 ensure_headline(FontRole::H2, m_px_h2);
                 ensure_headline(FontRole::H3, m_px_h3);
+                ensure_headline(FontRole::Bold, m_px_body);
+                ensure_headline(FontRole::BoldItalic, m_px_body);
             } else {
                 br.message = u8"Manual mode: Body font not provided";
             }

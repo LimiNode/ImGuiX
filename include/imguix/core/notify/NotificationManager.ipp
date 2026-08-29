@@ -37,7 +37,22 @@ namespace ImGuiX::Notify {
             if (m_cfg.render_limit > 0 && i >= static_cast<std::size_t>(m_cfg.render_limit)) continue;
 
             const float opacity = toast.fadePercent(m_cfg, eff_dismiss);
-            ImVec4 text_color = toast.color(); text_color.w = opacity;
+            ImVec4 icon_color = toast.color();
+            if (!toast.hasColorOverride()) {
+                switch (toast.type()) {
+                    case Type::Success: icon_color = m_style.icon_colors.success; break;
+                    case Type::Warning: icon_color = m_style.icon_colors.warning; break;
+                    case Type::Error:   icon_color = m_style.icon_colors.error;   break;
+                    case Type::Info:    icon_color = m_style.icon_colors.info;    break;
+                    default:            icon_color = m_style.icon_colors.none;    break;
+                }
+            }
+            icon_color.w *= opacity;
+            ImVec4 text_color = m_style.text;
+            text_color.w *= opacity;
+            const ImVec4 border_color = m_style.border_use_icon_color
+                ? icon_color
+                : m_style.border;
 
             char window_name[48];
             std::snprintf(window_name, sizeof(window_name), "###toast%u", i);
@@ -57,11 +72,19 @@ namespace ImGuiX::Notify {
 
             if (m_fonts.text) ImGui::PushFont(m_fonts.text);
 
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, m_style.background);
+            ImGui::PushStyleColor(ImGuiCol_PopupBg, m_style.background);
+            ImGui::PushStyleColor(ImGuiCol_Border, border_color);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_style.border_thickness);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_style.rounding);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_style.padding);
+
             ImGui::Begin(window_name, nullptr, wflags);
             ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
             ImGui::PushTextWrapPos(wrap_ref.x * m_cfg.wrap_width_frac);
             
             ImGui::PushID(static_cast<int>(i));
+            ImGui::PushStyleColor(ImGuiCol_Text, text_color);
             
             if (m_cfg.pause_on_hover) {
                 const ImVec2 p0 = ImGui::GetWindowPos();
@@ -83,7 +106,7 @@ namespace ImGuiX::Notify {
             bool title_rendered = false;
             if (icon && icon[0]) {
                 if (m_fonts.icons) ImGui::PushFont(m_fonts.icons);
-                ImGui::PushStyleColor(ImGuiCol_Text, text_color);
+                ImGui::PushStyleColor(ImGuiCol_Text, icon_color);
                 ImGui::TextUnformatted(icon);
                 ImGui::PopStyleColor();
                 if (m_fonts.icons) ImGui::PopFont();
@@ -118,12 +141,22 @@ namespace ImGuiX::Notify {
                 const float cur_x = ImGui::GetCursorPosX();
 
                 ImGui::SetCursorPosX(cur_x + std::max(0.0f, avail - btn_w - right_margin));
-                if (ImGuiX::Widgets::CloseXButton("##close", btn_w)) {
+                ImGui::PushStyleColor(ImGuiCol_Button, m_style.close_button_background);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_style.close_button_hovered);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_style.close_button_active);
+                ImGui::PushStyleColor(ImGuiCol_Text, m_style.close_button_text);
+                const bool close_clicked = ImGuiX::Widgets::CloseXButton("##close", btn_w);
+                ImGui::PopStyleColor(4);
+
+                if (close_clicked) {
                     ImGui::PopTextWrapPos(); 
                     if (m_fonts.text) ImGui::PopFont();
                     ImGui::PopID();
+                    ImGui::PopStyleColor();
                     ImGui::End();
-                    remove(i); height += m_cfg.padding_message_y; --i; continue;
+                    ImGui::PopStyleVar(3);
+                    ImGui::PopStyleColor(3);
+                    remove(i); height += m_style.spacing_y; --i; continue;
                 }
                 /*
                 ImGuiX::Widgets::IconButtonConfig ib;
@@ -150,15 +183,24 @@ namespace ImGuiX::Notify {
             std::function<void()> deferred;
             if (toast.onButtonPress()) {
                 if (const char* lbl = toast.buttonLabel(); lbl && lbl[0]) {
-                    if (ImGui::Button(lbl)) deferred = toast.onButtonPress();
+                    ImGui::PushStyleColor(ImGuiCol_Button, m_style.action_button_background);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_style.action_button_hovered);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_style.action_button_active);
+                    ImGui::PushStyleColor(ImGuiCol_Text, m_style.action_button_text);
+                    const bool action_clicked = ImGui::Button(lbl);
+                    ImGui::PopStyleColor(4);
+                    if (action_clicked) deferred = toast.onButtonPress();
                 }
             }
 
             ImGui::PopTextWrapPos();
-            height += ImGui::GetWindowHeight() + m_cfg.padding_message_y;
+            height += ImGui::GetWindowHeight() + m_style.spacing_y;
             if (m_fonts.text) ImGui::PopFont();
             ImGui::PopID();
+            ImGui::PopStyleColor();
             ImGui::End();
+            ImGui::PopStyleVar(3);
+            ImGui::PopStyleColor(3);
 
             if (deferred) deferred();
         }

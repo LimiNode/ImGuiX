@@ -123,9 +123,14 @@ namespace ImGuiX::Widgets {
     /// \param ctrl Controller with a NotificationManager.
     /// \param content Message text.
     /// \param dismiss_ms Auto-dismiss delay in milliseconds.
-    inline void NotifySuccess(Controller* ctrl, const char* content, int dismiss_ms = 0) {
+    inline void NotifySuccess(
+            Controller* ctrl,
+            const char* content,
+            int dismiss_ms = 0,
+            const ImVec4* color = nullptr) {
         if (!ctrl || !content) return;
         Notify::Notification n(Notify::Type::Success, dismiss_ms);
+        if (color) n.setColor(*color);
         n.setContent("%s", content);
         InsertNotification(ctrl, std::move(n));
     }
@@ -134,9 +139,14 @@ namespace ImGuiX::Widgets {
     /// \param ctrl Controller with a NotificationManager.
     /// \param content Message text.
     /// \param dismiss_ms Auto-dismiss delay in milliseconds.
-    inline void NotifyWarning(Controller* ctrl, const char* content, int dismiss_ms = 0) {
+    inline void NotifyWarning(
+            Controller* ctrl,
+            const char* content,
+            int dismiss_ms = 0,
+            const ImVec4* color = nullptr) {
         if (!ctrl || !content) return;
         Notify::Notification n(Notify::Type::Warning, dismiss_ms);
+        if (color) n.setColor(*color);
         n.setContent("%s", content);
         InsertNotification(ctrl, std::move(n));
     }
@@ -145,9 +155,14 @@ namespace ImGuiX::Widgets {
     /// \param ctrl Controller with a NotificationManager.
     /// \param content Message text.
     /// \param dismiss_ms Auto-dismiss delay in milliseconds.
-    inline void NotifyError(Controller* ctrl, const char* content, int dismiss_ms = 0) {
+    inline void NotifyError(
+            Controller* ctrl,
+            const char* content,
+            int dismiss_ms = 0,
+            const ImVec4* color = nullptr) {
         if (!ctrl || !content) return;
         Notify::Notification n(Notify::Type::Error, dismiss_ms);
+        if (color) n.setColor(*color);
         n.setContent("%s", content);
         InsertNotification(ctrl, std::move(n));
     }
@@ -156,9 +171,14 @@ namespace ImGuiX::Widgets {
     /// \param ctrl Controller with a NotificationManager.
     /// \param content Message text.
     /// \param dismiss_ms Auto-dismiss delay in milliseconds.
-    inline void NotifyInfo(Controller* ctrl, const char* content, int dismiss_ms = 0) {
+    inline void NotifyInfo(
+            Controller* ctrl,
+            const char* content,
+            int dismiss_ms = 0,
+            const ImVec4* color = nullptr) {
         if (!ctrl || !content) return;
         Notify::Notification n(Notify::Type::Info, dismiss_ms);
+        if (color) n.setColor(*color);
         n.setContent("%s", content);
         InsertNotification(ctrl, std::move(n));
     }

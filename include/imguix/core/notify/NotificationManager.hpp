@@ -40,6 +40,11 @@ namespace ImGuiX::Notify {
         /// \return Reference to icon config.
         const IconConfig& icons() const { return m_icons; }
 
+        /// \brief Access mutable local notification style.
+        NotificationStyle& style() { return m_style; }
+        /// \brief Access const local notification style.
+        const NotificationStyle& style() const { return m_style; }
+
         /// \brief Queue notification.
         /// \param toast Notification to push.
         void push(Notification toast) { m_notifications.push_back(std::move(toast)); }
@@ -165,6 +170,7 @@ namespace ImGuiX::Notify {
         Config     m_cfg{};
         IconConfig m_icons{};
         FontConfig m_fonts{};
+        NotificationStyle m_style{};
     };
 
 } // namespace ImGuiX::Notify

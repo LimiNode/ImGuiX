@@ -101,6 +101,10 @@ namespace ImGuiX {
         return m_font_manager.control(); 
     }
 
+    void WindowInstance::fontsSetDpi(float dpi) {
+        m_font_manager.setDpi(dpi);
+    }
+
     ImGuiX::Themes::ThemeManager& WindowInstance::themeManager() noexcept { 
         return m_theme_manager; 
     }

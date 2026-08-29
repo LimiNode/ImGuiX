@@ -22,6 +22,40 @@ namespace ImGuiX::Notify {
 
     /// \brief Auto-duration mode.
     enum class AutoDurationMode : std::uint8_t { Off, PerChar, WPM };
+
+    /// \brief Colors used for notification icons by notification type.
+    struct NotificationIconColors {
+        ImVec4 success = IMGUIX_NOTIFY_COLOR_SUCCESS;
+        ImVec4 warning = IMGUIX_NOTIFY_COLOR_WARNING;
+        ImVec4 error   = IMGUIX_NOTIFY_COLOR_ERROR;
+        ImVec4 info    = IMGUIX_NOTIFY_COLOR_INFO;
+        ImVec4 none    = IMGUIX_NOTIFY_COLOR_DEFAULT;
+    };
+
+    /// \brief Local visual style for notification windows.
+    struct NotificationStyle {
+        ImVec4 background = ImVec4(0.10f, 0.10f, 0.10f, 1.0f);
+        ImVec4 text       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        ImVec4 border     = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+        float border_thickness = 0.0f;
+        bool border_use_icon_color = false;
+        float rounding         = 0.0f;
+        ImVec2 padding          = ImVec2(8.0f, 8.0f);
+        float spacing_y         = 10.0f;
+        NotificationIconColors icon_colors{};
+
+        // Close button colors.
+        ImVec4 close_button_background = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+        ImVec4 close_button_hovered    = ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
+        ImVec4 close_button_active     = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+        ImVec4 close_button_text       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+        // Optional action button colors.
+        ImVec4 action_button_background = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+        ImVec4 action_button_hovered    = ImVec4(0.35f, 0.35f, 0.35f, 1.0f);
+        ImVec4 action_button_active     = ImVec4(0.20f, 0.20f, 0.20f, 1.0f);
+        ImVec4 action_button_text       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    };
     
     // ---- Config -------------------------------------------------------------
 
