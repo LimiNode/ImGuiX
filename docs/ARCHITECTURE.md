@@ -47,7 +47,8 @@ maintainable.
 - **WindowInstance** – represents a single window and its rendering context.
 - **Controller** – combines per-frame logic and view rendering.
 - **FeatureModel** – lightweight controller-local model stored in a registry.
-- **Model** – user data or backends such as `OptionsStore`.
+- **Model** – an application-facing stateful component such as `OptionsStore`
+  or an external-backend facade.
 - **EventBus** – asynchronous Publisher–Subscriber hub for decoupled messaging.
 - **ResourceRegistry** – thread-safe access to shared resources (fonts, themes,
   widgets, etc.).
@@ -83,6 +84,27 @@ maintainable.
 - **State split**: keep app-wide persistent state and services in `Model`, and
   keep controller-local derived/render state in `FeatureModel` or controller
   members.
+
+### Application models
+
+An application-level `Model` is not restricted to a passive data container or
+DTO. It may own mutable state, persistence, caches, and adapters to external
+services or processes. It may accept commands, coordinate operations through
+those adapters, and publish DTO events for controllers and windows through the
+`EventBus`.
+
+This makes a model suitable for a GUI-side backend facade while keeping the
+actual backend or domain logic outside ImGuiX. A model should expose the state
+and events needed by the UI, avoid direct rendering, and keep transport or
+process details behind an explicit service or adapter interface.
+
+```text
+UI command/event
+  -> application Model
+  -> service or external adapter
+  -> Model state update
+  -> DTO event for UI consumers
+```
 
 ## Feature Models
 `FeatureModel` provides tiny state objects tied to a single controller.

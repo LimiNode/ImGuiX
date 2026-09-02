@@ -107,6 +107,11 @@ graph LR
 * **Model Restrictions**: direct synchronous `notify` functions are deleted to avoid race conditions.
   Use `notifyAsync` outside of `process()`. Models may emit events synchronously via the
   `SyncNotifier` parameter passed into `process()`.
+* **Application models**: `Model` is an application-facing stateful component,
+  not only a passive data container. It may own persistence, caches, and
+  adapters to external services or processes, coordinate commands, and publish
+  DTO events. Keep rendering in controllers/windows and domain logic in the
+  owning application layer.
 * **Feature-local models**: controllers may own lightweight `FeatureModel` instances via
   `FeatureAccessMixin`. They run on the UI thread and must avoid ImGui calls.
 
@@ -421,7 +426,8 @@ Format: `type(scope): short description` where the scope is optional. Keep messa
 ### Glossary
 
 * **EventBus** – publish/subscribe hub for events.
-* **Model** – non-visual component processed each frame.
+* **Model** – non-visual, application-facing component processed each frame; it
+  may own state, services, persistence, or an external-backend adapter.
 * **Controller** – window-bound renderer and logic unit.
 * **ResourceRegistry** – thread-safe store for shared resources.
 * **WindowInstance** – backend-specific window implementation.
