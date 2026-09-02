@@ -204,7 +204,9 @@ ImGuiX combines the **Immediate Mode GUI paradigm** with classical design patter
 - **Immediate-Mode MVC**  
   - *View* → `WindowInstance` (represents a window and its rendering context).  
   - *Controller* → subclasses of `Controller` (combine per-frame rendering and logic).  
-  - *Model* → `OptionsStore`, user data, or external backends.  
+  - *Model* → application-facing state, services, user data, or external backends.
+    Models may own persistence, caches, and adapters, coordinate commands, and publish DTO events;
+    they are not limited to passive data containers.
 
 - **Event-driven communication**  
   The built-in `EventBus` implements a **Publisher–Subscriber** pattern.  
