@@ -365,6 +365,15 @@ namespace ImGuiX::Windows {
                     return HTCLIENT;
                 }
 
+                const bool in_title_bar_interactive_rect =
+                    pt.x >= m_title_bar_interactive_rect.x &&
+                    pt.x < m_title_bar_interactive_rect.z &&
+                    pt.y >= m_title_bar_interactive_rect.y &&
+                    pt.y < m_title_bar_interactive_rect.w;
+                if (in_title_bar_interactive_rect) {
+                    return HTCLIENT;
+                }
+
                 if (pt.y < m_config.title_bar_height) return HTCAPTION;
 
                 return HTCLIENT;

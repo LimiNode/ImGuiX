@@ -88,6 +88,10 @@ namespace ImGuiX {
     const ImGuiX::I18N::LangStore& WindowInstance::langStore() const {
         return m_lang_store;
     }
+
+    void WindowInstance::setLanguageBaseDir(const std::filesystem::path& base_dir) {
+        m_lang_store.set_base_dir(base_dir.u8string(), u8"en");
+    }
     
     ImFont* WindowInstance::getFont(ImGuiX::Fonts::FontRole role) const {
         return m_font_manager.getFont(role);

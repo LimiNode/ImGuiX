@@ -239,10 +239,13 @@ namespace ImGuiX::Windows {
         const float menu_right_limit =
             ImGui::GetWindowWidth() - buttons_reserved - style.WindowPadding.x - style.ItemSpacing.x;
         const float title_menu_width = ImMax(0.0f, menu_right_limit - menu_start_x);
+        m_title_bar_interactive_rect = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         if (title_menu_width <= 0.0f) {
             return;
         }
 
+        // The rest of the custom title bar is draggable on Windows (HTCAPTION),
+        // but menu items must remain client controls so Dear ImGui receives clicks.
         ImGui::SetCursorPos(ImVec2(menu_start_x, menu_y));
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.0f);
         if (ImGui::BeginChild(
@@ -254,6 +257,12 @@ namespace ImGuiX::Windows {
                 ImGuiWindowFlags_NoDecoration |
                 ImGuiWindowFlags_NoBackground
             )) {
+            const ImVec2 menu_window_pos = ImGui::GetWindowPos();
+            m_title_bar_interactive_rect = ImVec4(
+                menu_window_pos.x,
+                menu_window_pos.y,
+                menu_window_pos.x + title_menu_width,
+                menu_window_pos.y + menu_bar_height);
             ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0, 0, 0));
             drawMenuBar();

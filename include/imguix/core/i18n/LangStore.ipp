@@ -27,6 +27,23 @@ namespace ImGuiX::I18N {
         try_load_plural_rules_from_default_location();
     }
 
+    void LangStore::set_base_dir(std::string base_dir, std::string default_lang) {
+        m_base_dir = std::move(base_dir);
+        m_default_lang = std::move(default_lang);
+        m_current_lang = m_default_lang;
+
+        m_key_pool.clear();
+        m_en_map.clear();
+        m_lang_cache.clear();
+        m_label_cache.clear();
+        m_md_cache.clear();
+        m_plural_rules = std::make_unique<PluralRules>();
+
+        m_en_map = load_language_map(m_default_lang);
+        m_current_map = &m_en_map;
+        try_load_plural_rules_from_default_location();
+    }
+
     void LangStore::set_language(std::string lang) {
         if (lang == m_current_lang) return;
         m_current_lang = std::move(lang);
@@ -229,4 +246,3 @@ namespace ImGuiX::I18N {
     }
 
 } // namespace ImGuiX::I18N
-
