@@ -28,20 +28,45 @@ namespace ImGuiX::I18N {
     }
 
     void LangStore::set_base_dir(std::string base_dir, std::string default_lang) {
+        const std::string previous_default_lang = m_default_lang;
+        const std::string previous_current_lang = m_current_lang;
+        const bool was_using_default = previous_current_lang.empty() ||
+            previous_current_lang == previous_default_lang;
+
         m_base_dir = std::move(base_dir);
         m_default_lang = std::move(default_lang);
-        m_current_lang = m_default_lang;
+        m_current_lang = was_using_default ? m_default_lang : previous_current_lang;
 
-        m_key_pool.clear();
+        // Keep the pointer valid while the maps and their string-view key pool are rebuilt.
+        m_current_map = &m_en_map;
         m_en_map.clear();
         m_lang_cache.clear();
         m_label_cache.clear();
         m_md_cache.clear();
+        m_key_pool.clear();
         m_plural_rules = std::make_unique<PluralRules>();
 
-        m_en_map = load_language_map(m_default_lang);
-        m_current_map = &m_en_map;
-        try_load_plural_rules_from_default_location();
+        try {
+            m_en_map = load_language_map(m_default_lang);
+            if (m_current_lang == m_default_lang) {
+                m_current_map = &m_en_map;
+            } else {
+                auto map = load_language_map(m_current_lang);
+                auto it = m_lang_cache.emplace(m_current_lang, std::move(map)).first;
+                m_current_map = &it->second;
+            }
+            try_load_plural_rules_from_default_location();
+        } catch (...) {
+            // Leave a valid empty fallback state even when filesystem/allocation work fails.
+            m_current_map = &m_en_map;
+            m_en_map.clear();
+            m_lang_cache.clear();
+            m_label_cache.clear();
+            m_md_cache.clear();
+            m_key_pool.clear();
+            m_current_lang = m_default_lang;
+            throw;
+        }
     }
 
     void LangStore::set_language(std::string lang) {

@@ -112,6 +112,7 @@ namespace ImGuiX::Windows {
     }
 
     void ImGuiFramedWindow::drawUi() {
+        m_title_bar_interactive_rect = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         setCurrentWindow();
         ImGui::PushID(id());
         const ImGuiStyle& style = ImGui::GetStyle();

@@ -258,15 +258,23 @@ namespace ImGuiX::Windows {
                 ImGuiWindowFlags_NoBackground
             )) {
             const ImVec2 menu_window_pos = ImGui::GetWindowPos();
-            m_title_bar_interactive_rect = ImVec4(
-                menu_window_pos.x,
-                menu_window_pos.y,
-                menu_window_pos.x + title_menu_width,
-                menu_window_pos.y + menu_bar_height);
             ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0, 0, 0));
             drawMenuBar();
             ImGui::PopStyleColor(2);
+
+            // Only the occupied menu strip needs client hit-testing. Keep the remaining
+            // title-bar area draggable, especially on wide windows with a short menu.
+            const float menu_content_right = ImMin(
+                menu_window_pos.x + title_menu_width,
+                ImGui::GetItemRectMax().x + style.ItemSpacing.x);
+            if (menu_content_right > menu_window_pos.x) {
+                m_title_bar_interactive_rect = ImVec4(
+                    menu_window_pos.x,
+                    menu_window_pos.y,
+                    menu_content_right,
+                    menu_window_pos.y + menu_bar_height);
+            }
         }
         ImGui::EndChild();
         ImGui::PopStyleVar();

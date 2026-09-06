@@ -53,6 +53,7 @@ namespace ImGuiX::Windows {
     }
 
     void ImGuiFramedWindow::drawUi() {
+        m_title_bar_interactive_rect = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 #       ifdef IMGUIX_ENABLE_IMPLOT
         ImPlot::SetCurrentContext(m_implot_ctx);
 #       endif
