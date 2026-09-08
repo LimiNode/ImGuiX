@@ -22,11 +22,12 @@
 /// - override \ref drawSidePanel to render panel widgets.
 ///
 /// Menu bar geometry:
-/// - when \ref WindowFlags::HasMenuBar is enabled, menu bar is anchored to the top edge of the body region
-///   (directly below title-bar row) in both classic and corner-icon layouts.
+/// - in classic layout, the menu bar is anchored to the top edge of the body region;
 /// - corner-icon layout supports menu placement modes via
 ///   \ref ImGuiFramedWindowConfig::corner_menu_bar_placement:
 ///   `MainRegion` (backward-compatible), `InTitleBar`, `BelowTitleBar`.
+/// - `InTitleBar` makes menu-item interaction and highlight surfaces occupy the
+///   complete title-bar height, matching the system-control chrome.
 ///
 /// Minimal customization example:
 /// \code{.cpp}
