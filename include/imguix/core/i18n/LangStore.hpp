@@ -47,6 +47,14 @@ namespace ImGuiX::I18N {
         /// \param default_lang Default language (fallback), typically "en".
         explicit LangStore(std::string base_dir, std::string default_lang = u8"en");
 
+        /// \brief Replace the resource base directory and reload all language data.
+        /// \param base_dir Root folder containing per-language subdirectories.
+        /// \param default_lang Fallback language identifier.
+        /// \details The active language is preserved when possible. If the previous active
+        /// language was the old fallback language, the new fallback language becomes active.
+        /// Plural rules are reset to built-ins and then loaded from the new base directory.
+        void set_base_dir(std::string base_dir, std::string default_lang = u8"en");
+
         /// \brief Change current language and rebuild caches.
         /// \param lang New language code (e.g., "ru", "en").
         void set_language(std::string lang);
@@ -274,4 +282,3 @@ namespace ImGuiX::I18N {
 #endif
 
 #endif // _IMGUIX_UTILS_I18N_LANG_STORE_HPP_INCLUDED
-

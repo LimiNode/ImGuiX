@@ -22,11 +22,12 @@
 /// - override \ref drawSidePanel to render panel widgets.
 ///
 /// Menu bar geometry:
-/// - when \ref WindowFlags::HasMenuBar is enabled, menu bar is anchored to the top edge of the body region
-///   (directly below title-bar row) in both classic and corner-icon layouts.
+/// - in classic layout, the menu bar is anchored to the top edge of the body region;
 /// - corner-icon layout supports menu placement modes via
 ///   \ref ImGuiFramedWindowConfig::corner_menu_bar_placement:
 ///   `MainRegion` (backward-compatible), `InTitleBar`, `BelowTitleBar`.
+/// - `InTitleBar` makes menu-item interaction and highlight surfaces occupy the
+///   complete title-bar height, matching the system-control chrome.
 ///
 /// Minimal customization example:
 /// \code{.cpp}
@@ -174,6 +175,9 @@ namespace ImGuiX::Windows {
         WindowFlags m_flags = WindowFlags::NoFlags; ///< Current window flags.
         ImGuiFramedWindowConfig m_config;        ///< Runtime configuration values.
         bool m_disable_background = false;       ///< Skip clearing the background when true.
+        /// Client rectangle occupied by interactive title-bar controls.
+        /// Coordinates are relative to the native client window for platform hit-testing.
+        ImVec4 m_title_bar_interactive_rect = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 #       ifdef IMGUIX_USE_SFML_BACKEND
         int m_prev_width = -1;   ///< Width before entering fullscreen.
         int m_prev_height = -1;  ///< Height before entering fullscreen.

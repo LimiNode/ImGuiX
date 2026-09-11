@@ -217,6 +217,10 @@ namespace ImGuiX {
         /// \brief Get language store.
         /// \return Language store.
         const ImGuiX::I18N::LangStore& langStore() const override;
+
+        /// \brief Set the base directory used by the window localization store.
+        /// \param base_dir Directory containing language subdirectories.
+        void setLanguageBaseDir(const std::filesystem::path& base_dir);
         
         /// \brief Get font by role from the current font atlas.
         /// \param role Logical font role.

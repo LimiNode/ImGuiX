@@ -112,6 +112,7 @@ namespace ImGuiX::Windows {
     }
 
     void ImGuiFramedWindow::drawUi() {
+        m_title_bar_interactive_rect = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
         setCurrentWindow();
         ImGui::PushID(id());
         const ImGuiStyle& style = ImGui::GetStyle();
@@ -362,6 +363,15 @@ namespace ImGuiX::Windows {
                     return HTCLIENT;
                 }
                 if (PtInRect(&m_close_btn_rect, pt)) {
+                    return HTCLIENT;
+                }
+
+                const bool in_title_bar_interactive_rect =
+                    pt.x >= m_title_bar_interactive_rect.x &&
+                    pt.x < m_title_bar_interactive_rect.z &&
+                    pt.y >= m_title_bar_interactive_rect.y &&
+                    pt.y < m_title_bar_interactive_rect.w;
+                if (in_title_bar_interactive_rect) {
                     return HTCLIENT;
                 }
 
