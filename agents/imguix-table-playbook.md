@@ -1,7 +1,9 @@
 # ImGuiX table playbook
 
 Use this playbook for scrollable tables, selectable rows, filtering, and
-toolbar-plus-table panels.
+composed data panels. It documents reusable Dear ImGui invariants; individual
+applications remain responsible for their own panel composition and visual
+language.
 
 ## Separate table responsibilities
 
@@ -20,10 +22,10 @@ vertical `CellPadding` and compensate with a fake spacer row. Keep the active
 theme padding and adjust a local widget style only when there is a demonstrated
 layout requirement.
 
-## Bordered data-panel pattern
+## Optional bordered data-panel pattern
 
-For a dataset with controls, keep the toolbar and table inside one bordered
-child:
+When a consumer wants controls and a dataset to read as one component, it may
+keep them inside one bordered child:
 
 ```cpp
 const bool panel_visible = ImGui::BeginChild(
@@ -50,8 +52,8 @@ ImGui::EndChild();
 ```
 
 The child owns the outer border and padding; the table owns inner separators.
-Avoid adding a second outer table border unless the design explicitly calls
-for it.
+This is a composition recipe, not a required application layout. Avoid adding
+a second outer table border unless the consuming design explicitly calls for it.
 
 ## Filtering and range selection
 
