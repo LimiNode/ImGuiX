@@ -740,3 +740,17 @@ return ImGui::GetIO().Fonts->AddFontFromFileTTF(
 * Avoid hidden global state; favor explicit dependencies.
 * Use `enum class` for scoped enums.
 * Avoid macros in public APIs unless required for portability.
+
+## 20. Scoped styling and theme extensions
+
+* Use `ImGuiX::Extensions::ScopedStyleVar` and
+  `ImGuiX::Extensions::ScopedStyleColor` for temporary style changes. Their
+  RAII lifetime must cover the widget or child window that consumes the style.
+* Keep reusable design values in theme roles or custom theme tokens. Consumers
+  should resolve the active theme instead of hardcoding product colors.
+* Screen-specific geometry may stay local until it is repeated. Promote a
+  metric to a theme/widget token only when it is part of the shared design
+  language.
+* Every `BeginChild`, `BeginTable`, popup, and matching ImGui `Begin*` call must
+  have an unconditional matching `End*` after the call; never make cleanup
+  depend on the boolean content return value.
