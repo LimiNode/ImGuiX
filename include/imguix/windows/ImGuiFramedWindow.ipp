@@ -238,8 +238,13 @@ namespace ImGuiX::Windows {
         const float last_item_right_local = ImMax(0.0f, last_item_max.x - ImGui::GetWindowPos().x);
         const bool navigation_strip =
             m_config.title_bar_menu_presentation == TitleBarMenuPresentation::NavigationStrip;
-        const float menu_start_x = ImMax(cursor_after_title, last_item_right_local) +
-                                   (navigation_strip ? 0.0f : style.ItemSpacing.x);
+        // An empty title leaves the cursor at the configured title-text inset.
+        // NavigationStrip owns that empty title region and must start flush at
+        // its edge even when the default title inset is non-zero.
+        const float menu_start_x = navigation_strip && m_title.empty()
+            ? 0.0f
+            : ImMax(cursor_after_title, last_item_right_local) +
+                  (navigation_strip ? 0.0f : style.ItemSpacing.x);
         // A title-bar menu is part of the chrome itself. Give its child the full
         // title height and size MenuItem frames to that same height so hover and
         // selected backgrounds align with the native control buttons.
