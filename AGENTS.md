@@ -19,6 +19,8 @@
 * [17. C++ Code Formatting](#17-c-code-formatting)
 * [18. C++ Naming Conventions](#18-c-naming-conventions)
 * [19. C++ Code Recommendations](#19-c-code-recommendations)
+* [20. Scoped Styling and Theme Extensions](#20-scoped-styling-and-theme-extensions)
+* [21. Agent Playbooks](#21-agent-playbooks)
 
 ## 1. Mission & Scope
 
@@ -751,6 +753,18 @@ return ImGui::GetIO().Fonts->AddFontFromFileTTF(
 * Screen-specific geometry may stay local until it is repeated. Promote a
   metric to a theme/widget token only when it is part of the shared design
   language.
-* Every `BeginChild`, `BeginTable`, popup, and matching ImGui `Begin*` call must
-  have an unconditional matching `End*` after the call; never make cleanup
-  depend on the boolean content return value.
+* Follow the Dear ImGui lifecycle contract for every `Begin*` call:
+  `Begin`, `BeginChild`, and `BeginTabBar` require their matching `End*`
+  even when the boolean return value is `false`; `BeginTable`, `BeginPopup`,
+  `BeginCombo`, and similar conditional scopes require `End*` exactly once
+  only when they return `true`.
+* For the detailed recipes and review checklists, use:
+  - `agents/imguix-styling-playbook.md` for scoped styling and theme ownership.
+  - `agents/imguix-table-playbook.md` for table composition and filtered selection.
+
+## 21. Agent playbooks
+
+Keep `AGENTS.md` focused on architectural invariants. Execution-oriented
+recipes belong in `external/ImGuiX/agents/` and must be linked from
+`agents/README.md`. Update the relevant playbook when an API invariant or
+recommended integration pattern changes.

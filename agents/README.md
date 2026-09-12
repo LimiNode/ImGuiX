@@ -7,6 +7,8 @@ Files:
 - `imguix-smoke-build.md` - Known-good commands to configure and rebuild smoke examples with MinGW.
 - `imguix-fonts-i18n-playbook.md` - Quick operational checklist for documenting and validating fonts + i18n behavior.
 - `imguix-windowing-playbook.md` - Practical checklist for `WindowInstance` / `ImGuiFramedWindow` changes and docs sync.
+- `imguix-styling-playbook.md` - RAII style guards, theme ownership, and styling review checks.
+- `imguix-table-playbook.md` - Table surfaces, bordered data panels, filtering, and range-selection rules.
 
 When to use `imguix-fonts-i18n-playbook.md`:
 
