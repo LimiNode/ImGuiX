@@ -1,5 +1,6 @@
 #include <imgui.h>
 #include <cassert>
+#include <imguix/extensions/scoped_style.hpp>
 #include <imguix/widgets/controls/circle_button.hpp>
 #include <imguix/widgets/controls/system_button.hpp>
 #include <imguix/utils/path_utils.hpp>
@@ -235,7 +236,15 @@ namespace ImGuiX::Windows {
         const float cursor_after_title = ImGui::GetCursorPosX();
         const ImVec2 last_item_max = ImGui::GetItemRectMax();
         const float last_item_right_local = ImMax(0.0f, last_item_max.x - ImGui::GetWindowPos().x);
-        const float menu_start_x = ImMax(cursor_after_title, last_item_right_local) + style.ItemSpacing.x;
+        const bool navigation_strip =
+            m_config.title_bar_menu_presentation == TitleBarMenuPresentation::NavigationStrip;
+        // An empty title leaves the cursor at the configured title-text inset.
+        // NavigationStrip owns that empty title region and must start flush at
+        // its edge even when the default title inset is non-zero.
+        const float menu_start_x = navigation_strip && m_title.empty()
+            ? 0.0f
+            : ImMax(cursor_after_title, last_item_right_local) +
+                  (navigation_strip ? 0.0f : style.ItemSpacing.x);
         // A title-bar menu is part of the chrome itself. Give its child the full
         // title height and size MenuItem frames to that same height so hover and
         // selected backgrounds align with the native control buttons.
@@ -252,18 +261,23 @@ namespace ImGuiX::Windows {
         // The rest of the custom title bar is draggable on Windows (HTCAPTION),
         // but menu items must remain client controls so Dear ImGui receives clicks.
         ImGui::SetCursorPos(ImVec2(menu_start_x, menu_y));
-        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.0f);
         const float title_menu_frame_padding_y = ImMax(
             0.0f, (title_menu_height - ImGui::GetTextLineHeight()) * 0.5f);
-        ImGui::PushStyleVar(
+        const ImGuiX::Extensions::ScopedStyleVar child_rounding(
+            ImGuiStyleVar_ChildRounding, 0.0f);
+        const ImGuiX::Extensions::ScopedStyleVar frame_padding(
             ImGuiStyleVar_FramePadding,
             ImVec2(ImGui::GetStyle().FramePadding.x, title_menu_frame_padding_y));
         // Horizontal menu items are Selectable widgets whose background expands
         // by half ItemSpacing on each vertical side. Match that expansion to the
         // frame padding so their hover/selected surface spans the full title bar.
-        ImGui::PushStyleVar(
+        const ImGuiX::Extensions::ScopedStyleVar item_spacing(
             ImGuiStyleVar_ItemSpacing,
-            ImVec2(ImGui::GetStyle().ItemSpacing.x, title_menu_frame_padding_y * 2.0f));
+            ImVec2(navigation_strip ? 0.0f : ImGui::GetStyle().ItemSpacing.x,
+                   title_menu_frame_padding_y * 2.0f));
+        const ImGuiX::Extensions::ScopedStyleVar child_padding(
+            ImGuiStyleVar_WindowPadding,
+            ImVec2(navigation_strip ? 0.0f : style.WindowPadding.x, style.WindowPadding.y));
         if (ImGui::BeginChild(
                 u8"##imguix_title_menu_bar",
                 ImVec2(title_menu_width, title_menu_height),
@@ -274,10 +288,16 @@ namespace ImGuiX::Windows {
                 ImGuiWindowFlags_NoBackground
             )) {
             const ImVec2 menu_window_pos = ImGui::GetWindowPos();
-            ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0, 0, 0));
+            const ImGuiX::Extensions::ScopedStyleColor menu_bar_bg(
+                ImGuiCol_MenuBarBg, ImVec4(0, 0, 0, 0));
+            const ImGuiX::Extensions::ScopedStyleColor header(
+                ImGuiCol_Header,
+                navigation_strip ? style.Colors[ImGuiCol_NavHighlight] : ImVec4(0, 0, 0, 0));
+            const ImGuiX::Extensions::ScopedStyleColor header_hovered(
+                ImGuiCol_HeaderHovered, style.Colors[ImGuiCol_HeaderHovered]);
+            const ImGuiX::Extensions::ScopedStyleColor header_active(
+                ImGuiCol_HeaderActive, style.Colors[ImGuiCol_HeaderActive]);
             drawMenuBar();
-            ImGui::PopStyleColor(2);
 
             // Only the occupied menu strip needs client hit-testing. Keep the remaining
             // title-bar area draggable, especially on wide windows with a short menu.
@@ -293,7 +313,6 @@ namespace ImGuiX::Windows {
             }
         }
         ImGui::EndChild();
-        ImGui::PopStyleVar(3);
     }
 
     void ImGuiFramedWindow::drawClassicLayout(float menu_bar_height) {

@@ -244,6 +244,7 @@ cmake --build external/ImGuiX/build-mingw --target corner_icon_area_demo_v3 --pa
 | `corner_icon_mode_icon_size` | Размер corner icon | `<0`: auto-fit с frame-aware компенсацией. |
 | `corner_icon_mode_gap` | Gap между icon area и title/side | `<0`: runtime `style.WindowPadding.x`. |
 | `corner_menu_bar_placement` | `MainRegion`, `InTitleBar`, `BelowTitleBar` | Имеет смысл только при `HasMenuBar`. |
+| `title_bar_menu_presentation` | `Menu` или `NavigationStrip` | Работает с `InTitleBar`; strip убирает ведущий inset, при пустом title начинается от края title-region и использует theme navigation surfaces. |
 
 ### Подписи кнопок и clear color
 
@@ -357,6 +358,8 @@ static ImGuiX::Windows::ImGuiFramedWindowConfig buildCornerV3Config() {
     cfg.title_bar_height = 40;
     cfg.side_panel_width = 0; // corner auto-width
     cfg.corner_menu_bar_placement = ImGuiX::Windows::CornerMenuBarPlacement::MainRegion;
+    cfg.title_bar_menu_presentation =
+        ImGuiX::Windows::TitleBarMenuPresentation::Menu;
     return cfg;
 }
 ```
@@ -368,6 +371,7 @@ static ImGuiX::Windows::ImGuiFramedWindowConfig buildCornerV3Config() {
 | Classic app (title + menu + side) | `drawTitleBarText()`, `drawMenuBar()`, `drawSidePanel()` | `drawCornerIcon()` (обычно не нужен) |
 | Corner app (icon + side, без menu) | `drawTitleBarText()`, `drawSidePanel()` | `drawCornerIcon()` |
 | Menu in title bar (corner mode) | `drawTitleBarText()`, `drawMenuBar()` | `drawSidePanel()`, `drawCornerIcon()` |
+| Navigation strip in title bar | `drawMenuBar()` | `drawTitleBarText()`, если title slot намеренно пуст |
 
 ## Карта smoke-примеров
 
@@ -413,7 +417,11 @@ cmake --build external/ImGuiX/build-mingw --target corner_icon_area_demo_v3 --pa
 5. `corner_menu_bar_placement` без `HasMenuBar` не влияет
 - Логика placement выполняется только при активном menu-флаге.
 
-6. Конфликт style-флагов control buttons
+6. `title_bar_menu_presentation` работает только с `InTitleBar`
+- `NavigationStrip` — это presentation policy chrome, а не замена
+  `drawMenuBar()` и не доменная navigation model.
+
+7. Конфликт style-флагов control buttons
 - Несколько style-флагов дают debug assert и release fallback.
 
 ## Чеклист отладки (Debug Checklist)

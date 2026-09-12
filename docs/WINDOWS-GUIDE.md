@@ -244,6 +244,7 @@ Notes:
 | `corner_icon_mode_icon_size` | Corner icon content size | `<0`: auto-fit with frame-aware compensation. |
 | `corner_icon_mode_gap` | Gap between icon area and title/side | `<0`: runtime `style.WindowPadding.x`. |
 | `corner_menu_bar_placement` | `MainRegion`, `InTitleBar`, `BelowTitleBar` | Effective only with `HasMenuBar`. |
+| `title_bar_menu_presentation` | `Menu` or `NavigationStrip` | Effective with `InTitleBar`; the strip removes the leading inset, starts at the title-region edge when the title is empty, and uses theme navigation surfaces. |
 
 ### Button labels and clear color
 
@@ -357,6 +358,8 @@ static ImGuiX::Windows::ImGuiFramedWindowConfig buildCornerV3Config() {
     cfg.title_bar_height = 40;
     cfg.side_panel_width = 0; // corner auto-width
     cfg.corner_menu_bar_placement = ImGuiX::Windows::CornerMenuBarPlacement::MainRegion;
+    cfg.title_bar_menu_presentation =
+        ImGuiX::Windows::TitleBarMenuPresentation::Menu;
     return cfg;
 }
 ```
@@ -368,6 +371,7 @@ static ImGuiX::Windows::ImGuiFramedWindowConfig buildCornerV3Config() {
 | Classic app (title + menu + side) | `drawTitleBarText()`, `drawMenuBar()`, `drawSidePanel()` | `drawCornerIcon()` (not used) |
 | Corner app (icon + side, no menu) | `drawTitleBarText()`, `drawSidePanel()` | `drawCornerIcon()` |
 | Menu in title bar (corner mode) | `drawTitleBarText()`, `drawMenuBar()` | `drawSidePanel()`, `drawCornerIcon()` |
+| Navigation strip in title bar | `drawMenuBar()` | `drawTitleBarText()` when the title slot is intentionally empty |
 
 ## Smoke Demo Map
 
@@ -413,7 +417,11 @@ For full smoke profile, see `agents/imguix-smoke-build.md`.
 5. `corner_menu_bar_placement` has no effect without `HasMenuBar`
 - Placement logic runs only when menu flag is active.
 
-6. Control-button style flag conflicts
+6. `title_bar_menu_presentation` has no effect outside `InTitleBar`
+- `NavigationStrip` is a chrome presentation policy, not a replacement for
+  `drawMenuBar()` and not a domain navigation model.
+
+7. Control-button style flag conflicts
 - Multiple style flags trigger debug assert and release fallback.
 
 ## Debug Checklist
