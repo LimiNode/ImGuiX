@@ -268,7 +268,8 @@ namespace ImGuiX::Windows {
         // frame padding so their hover/selected surface spans the full title bar.
         const ImGuiX::Extensions::ScopedStyleVar item_spacing(
             ImGuiStyleVar_ItemSpacing,
-            ImVec2(ImGui::GetStyle().ItemSpacing.x, title_menu_frame_padding_y * 2.0f));
+            ImVec2(navigation_strip ? 0.0f : ImGui::GetStyle().ItemSpacing.x,
+                   title_menu_frame_padding_y * 2.0f));
         const ImGuiX::Extensions::ScopedStyleVar child_padding(
             ImGuiStyleVar_WindowPadding,
             ImVec2(navigation_strip ? 0.0f : style.WindowPadding.x, style.WindowPadding.y));
