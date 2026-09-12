@@ -753,11 +753,11 @@ return ImGui::GetIO().Fonts->AddFontFromFileTTF(
 * Screen-specific geometry may stay local until it is repeated. Promote a
   metric to a theme/widget token only when it is part of the shared design
   language.
-* Follow the Dear ImGui lifecycle contract for every `Begin*` call:
-  `Begin`, `BeginChild`, and `BeginTabBar` require their matching `End*`
-  even when the boolean return value is `false`; `BeginTable`, `BeginPopup`,
-  `BeginCombo`, and similar conditional scopes require `End*` exactly once
-  only when they return `true`.
+* Follow the Dear ImGui lifecycle contract for every `Begin*` call. Always
+  call `End` and `EndChild` after `Begin` and `BeginChild`, even when their
+  boolean return value is `false`. Call `EndTable`, `EndPopup`, `EndCombo`,
+  `EndTabBar`, and similar conditional cleanup exactly once only when the
+  corresponding `Begin*` call returns `true`.
 * For the detailed recipes and review checklists, use:
   - `agents/imguix-styling-playbook.md` for scoped styling and theme ownership.
   - `agents/imguix-table-playbook.md` for table composition and filtered selection.

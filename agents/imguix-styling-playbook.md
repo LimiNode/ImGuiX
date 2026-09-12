@@ -15,7 +15,8 @@ style changes:
     const ImGuiX::Extensions::ScopedStyleColor border(
         ImGuiCol_Border, ImGui::GetStyle().Colors[ImGuiCol_Border]);
 
-    const bool content_visible = ImGui::BeginChild("panel");
+    const bool content_visible = ImGui::BeginChild(
+        "panel", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AlwaysUseWindowPadding);
     if (content_visible) {
         draw_content();
     }
@@ -54,7 +55,10 @@ resolve it at draw time.
 
 - Search consumer code for raw `PushStyleVar`, `PushStyleColor`, and matching
   `PopStyle*` calls. Replace temporary overrides with RAII guards.
-- Verify every `Begin*` has an unconditional matching `End*`.
+- Verify lifecycle cleanup follows the Dear ImGui API contract: `End` and
+  `EndChild` are unconditional, while `EndTable`, `EndPopup`, `EndCombo`,
+  `EndTabBar`, and similar cleanup run exactly once only when `Begin*` returns
+  `true`.
 - Confirm style guards remain alive for the widget/window that consumes them.
 - Use `docs/THEMES.md` for the complete `ThemeManager` and custom-token API.
 - Build at least one relevant smoke example after changing style or theme code.
