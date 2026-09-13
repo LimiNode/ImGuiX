@@ -345,18 +345,17 @@ namespace ImGuiX::Windows {
                 // Native resize bands may overlap the custom title chrome. Give
                 // the actual controls precedence so the top edge cannot swallow
                 // clicks on the full-height NavigationStrip or system buttons.
-                // ImGui item rectangles are screen-space; WM_NCHITTEST's `pt`
-                // is client-space after ScreenToClient(), so compare the
-                // chrome rectangles with the original screen-space point.
+                // ImGui item rectangles and the interactive rect are client-space,
+                // matching `pt` after ScreenToClient().
                 const bool in_title_control =
-                    PtInRect(&m_minimize_btn_rect, screen_pt) ||
-                    PtInRect(&m_maximize_btn_rect, screen_pt) ||
-                    PtInRect(&m_close_btn_rect, screen_pt);
+                    PtInRect(&m_minimize_btn_rect, pt) ||
+                    PtInRect(&m_maximize_btn_rect, pt) ||
+                    PtInRect(&m_close_btn_rect, pt);
                 const bool in_title_bar_interactive_rect =
-                    screen_pt.x >= m_title_bar_interactive_rect.x &&
-                    screen_pt.x < m_title_bar_interactive_rect.z &&
-                    screen_pt.y >= m_title_bar_interactive_rect.y &&
-                    screen_pt.y < m_title_bar_interactive_rect.w;
+                    pt.x >= m_title_bar_interactive_rect.x &&
+                    pt.x < m_title_bar_interactive_rect.z &&
+                    pt.y >= m_title_bar_interactive_rect.y &&
+                    pt.y < m_title_bar_interactive_rect.w;
                 if (in_title_control || in_title_bar_interactive_rect) {
                     return HTCLIENT;
                 }
