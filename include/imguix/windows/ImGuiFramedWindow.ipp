@@ -323,16 +323,6 @@ namespace ImGuiX::Windows {
         ImGui::EndChild();
     }
 
-    bool ImGuiFramedWindow::drawTitleBarNavigationItem(
-        const char* label, const bool selected) {
-        // NavigationStrip deliberately keeps the internal title/body seam square.
-        // The child is already configured with a zero leading inset while the
-        // regular themed MenuItem supplies the full-height interaction surface;
-        // adding a second custom draw surface here would reintroduce a rounded
-        // patch over the title chrome and make the seam dependent on clipping.
-        return ImGui::MenuItem(label, nullptr, selected);
-    }
-
     void ImGuiFramedWindow::drawClassicLayout(float menu_bar_height) {
         const ImGuiStyle& style = ImGui::GetStyle();
         const ImVec2 host_size = ImGui::GetWindowSize();

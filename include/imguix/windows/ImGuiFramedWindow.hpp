@@ -245,15 +245,6 @@ namespace ImGuiX::Windows {
         /// \param style Active Dear ImGui style reference.
         void drawCornerInTitleMenuRegion(float menu_bar_height, const ImGuiStyle& style);
 
-        /// \brief Draw one item in a title-bar NavigationStrip.
-        /// \details NavigationStrip keeps the internal title/body seam square;
-        ///          the regular themed Dear ImGui menu item supplies the full-height
-        ///          interaction surface.
-        /// \param label Visible label with an optional hidden ImGui ID suffix.
-        /// \param selected Whether the navigation item is selected.
-        /// \return True when the item was activated.
-        bool drawTitleBarNavigationItem(const char* label, bool selected);
-
         /// \brief Draw classic framed-window layout.
         /// \param menu_bar_height Menu bar height in pixels.
         void drawClassicLayout(float menu_bar_height);
