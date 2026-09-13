@@ -157,6 +157,10 @@ Selects a signed UTC offset or timezone from a predefined list.
 ```cpp
 ImGuiX::Widgets::TimeOffsetPicker("offset", tz_offset, has_dst, tz_index, to_cfg);
 ```
+`TimeOffsetPickerConfig` accepts optional `timezone_label`, `value_format`,
+`dst_suffix`, and `gmt_label` overrides.  These labels are borrowed only for
+the duration of the call, so localized callers must keep their backing strings
+alive until the widget returns.
 
 ### DatePicker
 Calendar date picker operating on Y/M/D or timestamp.
@@ -192,4 +196,3 @@ eventBus().subscribe<ImGuiX::Events::MetricsPlotUpdateEvent>(
     [this](const auto& e){ plot_data = *e.data; });
 ImGuiX::Widgets::MetricsPlot(plot_data, plot_state);
 ```
-

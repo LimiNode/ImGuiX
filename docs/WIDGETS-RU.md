@@ -156,6 +156,10 @@ ImGuiX::Widgets::TimePicker("time", seconds, tp_cfg);
 ```cpp
 ImGuiX::Widgets::TimeOffsetPicker("offset", tz_offset, has_dst, tz_index, to_cfg);
 ```
+`TimeOffsetPickerConfig` принимает необязательные подписи
+`timezone_label`, `value_format`, `dst_suffix` и `gmt_label`. Эти строки
+заимствуются только на время вызова, поэтому локализованный код должен
+сохранять исходные `std::string` до возврата виджета.
 
 ### DatePicker
 Выбор календарной даты по Y/M/D или timestamp.
@@ -174,4 +178,3 @@ ImGuiX::Widgets::HoursSelector("hours", hours, hs_cfg);
 ```cpp
 ImGuiX::Widgets::DaysOfWeekSelector("days", days, ds_cfg);
 ```
-
