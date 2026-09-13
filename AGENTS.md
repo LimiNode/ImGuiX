@@ -138,6 +138,13 @@ graph LR
    - accumulate tokens while `ImGui::CalcTextSize(...) <= max_text_px`, then append `"..."`
 5) **Do not** hardcode width via `GetWindowWidth()*k` — use helpers/`CalcItemWidth()`.
 
+`TimeOffsetPickerConfig` follows the same non-owning-label contract as the other
+widget configurations.  `label`, `timezone_label`, `value_format`,
+`dst_suffix`, and `gmt_label` are only borrowed during the widget call.  A
+localized caller should keep its `std::string` values alive until
+`TimeOffsetPicker()` returns; do not pass `langStore().text(...).c_str()` from
+a temporary string-producing API.
+
 **MWE: DaysOfWeekSelector (fragment)**
 
 ```cpp
@@ -317,6 +324,48 @@ if (ImGui::BeginCombo(cfg.label ? cfg.label : u8"Days", preview.c_str(),
 * **ADR**: Context → Decision → Consequences. Store in `/docs/adr/` (create if absent).
 
 ## 11. Anti-Patterns & Pitfalls
+
+### Dear ImGui Begin/End and style-stack lifetime
+
+Keep unconditional window scopes structurally balanced even when the begin
+call returns `false`:
+
+```cpp
+const ScopedStyleVar padding(ImGuiStyleVar_WindowPadding, padding_value);
+const bool child_visible = ImGui::BeginChild(
+    "##child", size, ImGuiChildFlags_AlwaysUseWindowPadding);
+if (child_visible) {
+    draw_child();
+}
+ImGui::EndChild();
+```
+
+This unconditional rule applies to `Begin()`/`End()` and
+`BeginChild()`/`EndChild()`. Dear ImGui has conditional scopes too: call
+`EndTable()`, `EndPopup()`, `EndCombo()`, `EndTabBar()`, and `EndTabItem()`
+exactly once only when their matching `Begin*()` call returned `true`.
+
+```cpp
+if (ImGui::BeginTable("##table", 3)) {
+    draw_table();
+    ImGui::EndTable();
+}
+```
+
+Never infer the rule from the `Begin*` prefix alone; check the widget's Dear
+ImGui contract before choosing an unconditional or conditional scope.
+
+Style lifetime follows when the style is pushed:
+
+* A style pushed before `Begin()`/`BeginChild()` is part of the window's saved
+  baseline. Keep it alive through the matching `End()`/`EndChild()` and let the
+  guard restore it afterwards.
+* A style pushed after a successful `Begin*()` belongs to the child contents.
+  Destroy that guard before the matching `End*()`.
+
+Use `ScopedStyleVar`/`ScopedStyleColor` for application-facing temporary
+overrides. Raw push/pop is reserved for low-level ImGuiX code where the exact
+window-stack boundary is explicit and covered by a local invariant.
 
 | Symptom                   | Cause                                            | Fix                                                                              |
 | ------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- |
