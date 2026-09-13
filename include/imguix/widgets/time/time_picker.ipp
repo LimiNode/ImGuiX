@@ -227,7 +227,8 @@ namespace ImGuiX::Widgets {
             if (cfg.show_tz_list && !tzlist.empty()) {
                 const char* cur = tzlist[tz_index_io].label;
                 ImGui::SetNextItemWidth(tz_field_width);
-                if (ImGui::BeginCombo(u8"Timezone", cur)) {
+                if (ImGui::BeginCombo(
+                        cfg.timezone_label ? cfg.timezone_label : u8"Timezone", cur)) {
                     for (int i = 0; i < (int)tzlist.size(); ++i) {
                         bool sel = (i == tz_index_io);
                         if (ImGui::Selectable(tzlist[i].label, sel)) { tz_index_io = i; changed = true; }
@@ -261,7 +262,8 @@ namespace ImGuiX::Widgets {
                     }
                 }
                 ImGui::SameLine();
-                ImGui::TextUnformatted(u8"±HH:MM[:SS]");
+                ImGui::TextUnformatted(
+                    cfg.value_format ? cfg.value_format : u8"±HH:MM[:SS]");
             }
 
             // 2) H/M/S steppers edit magnitude + allow crossing zero to change sign
@@ -319,8 +321,10 @@ namespace ImGuiX::Widgets {
 
             if (cfg.show_gmt) {
                 std::string g = ImGuiX::Utils::format_signed_hms(offset_sec);
-                ImGui::Text(u8"GMT %s%s", g.c_str(),
-                            (!custom && has_dst_out) ? u8" (DST observed)" : u8"");
+                ImGui::Text("%s %s%s", cfg.gmt_label ? cfg.gmt_label : u8"GMT", g.c_str(),
+                            (!custom && has_dst_out && cfg.dst_suffix != nullptr)
+                                ? cfg.dst_suffix
+                                : "");
             }
 
             ImGui::EndCombo();

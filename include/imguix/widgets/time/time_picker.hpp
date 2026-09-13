@@ -57,6 +57,12 @@ namespace ImGuiX::Widgets {
         float       tz_field_width  = 0.0f;       ///< Width for timezone field.
         float       hms_field_width = 0.0f;       ///< Width for HH:MM:SS field.
         const std::vector<TimeZoneInfo>* time_zones = nullptr; ///< Custom timezone list.
+        // Optional presentation labels are appended to preserve source
+        // compatibility for existing aggregate initializers.
+        const char* timezone_label = u8"Timezone"; ///< Label for the timezone selector inside the popup.
+        const char* dst_suffix    = u8" (DST observed)"; ///< Suffix shown for DST-aware zones.
+        const char* value_format  = u8"±HH:MM[:SS]"; ///< Inline format hint for manual editing.
+        const char* gmt_label     = u8"GMT"; ///< Prefix for the effective UTC offset.
     };
 
     // ---------- widgets ----------------------------------------------------------

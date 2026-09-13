@@ -2,6 +2,9 @@
 #ifndef _IMGUIX_PUBSUB_EVENT_HPP_INCLUDED
 #define _IMGUIX_PUBSUB_EVENT_HPP_INCLUDED
 
+#include <memory>
+#include <typeindex>
+
 /// \file Event.hpp
 /// \brief Defines the base Event class used in the publish-subscribe pattern.
 /// \ingroup Core

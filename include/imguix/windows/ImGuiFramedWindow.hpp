@@ -28,6 +28,8 @@
 ///   `MainRegion` (backward-compatible), `InTitleBar`, `BelowTitleBar`.
 /// - `InTitleBar` makes menu-item interaction and highlight surfaces occupy the
 ///   complete title-bar height, matching the system-control chrome.
+/// - `title_bar_menu_presentation` selects normal menu presentation or a flush
+///   navigation strip when using `InTitleBar`.
 ///
 /// Minimal customization example:
 /// \code{.cpp}
@@ -103,6 +105,8 @@ namespace ImGuiX::Windows {
         float corner_icon_mode_icon_size = -1.0f; ///< Icon size in px for corner icon slot; `< 0` uses auto-fit from current corner icon area geometry with frame-chrome compensation on left/top.
         float corner_icon_mode_gap = -1.0f; ///< Gap between icon-area and title/side; `< 0` uses runtime `style.WindowPadding.x`.
         CornerMenuBarPlacement corner_menu_bar_placement = CornerMenuBarPlacement::MainRegion; ///< Corner mode menu-bar placement strategy.
+        TitleBarMenuPresentation title_bar_menu_presentation =
+            TitleBarMenuPresentation::Menu; ///< Presentation policy for an in-title-bar menu.
         const char* close_button_text = u8"X##imguix_btn_close"; ///< Close button label + hidden ImGui ID suffix.
         const char* minimize_button_text = u8"_##imguix_btn_minimize"; ///< Minimize button label + hidden ImGui ID suffix.
         const char* maximize_button_text = u8"[]##imguix_btn_maximize"; ///< Maximize button label + hidden ImGui ID suffix.
@@ -202,6 +206,11 @@ namespace ImGuiX::Windows {
         /// \brief Draw content in the left area of title bar.
         /// \details Override for logo/title text customization. Right-side control buttons are drawn separately.
         virtual void drawTitleBarText();
+
+        /// \brief Report whether the title-bar content occupies horizontal space.
+        /// \details Override when the title renderer intentionally draws no content while the
+        ///          logical window title is retained for other platform integrations.
+        virtual bool hasTitleBarContent() const;
 
         /// \brief Draw content inside optional left side panel.
         /// \details Called only when `m_config.side_panel_width > 0`.

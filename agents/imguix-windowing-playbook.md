@@ -64,6 +64,23 @@ Also run the target directly related to the change (for example `corner_icon_are
 
 If you change `frame_outer_stroke_thickness` or `frame_inner_stroke_thickness`, verify that `main_region` content does not visually slide under the right/bottom host frame in the SFML framed backend.
 
+### NavigationStrip geometry invariant
+
+`TitleBarMenuPresentation::NavigationStrip` is a chrome presentation mode, not a
+second widget-rendering system. Keep the title/body junction square: the title
+surface and the regular themed `MenuItem()` interaction surface must not be
+combined with a manually painted rounded overlay. Set horizontal `ItemSpacing`
+to zero only while creating the title-menu child so Dear ImGui records a flush
+`MenuBarOffset`; restore the theme spacing before calling `BeginMenuBar()` and
+the derived `drawMenuBar()` so labels and hit boxes retain normal separation.
+Use theme roles (`NavHighlight`, `HeaderHovered`, `HeaderActive`) rather than
+hard-coded navigation colors, and keep `BeginChild()`/`EndChild()` balanced even
+when the child is clipped.
+
+The square-seam rule applies to the title surface at the icon/body junction. It
+does not silently change the independent rounding of the side-panel or main
+content cards; those remain a separate layout/style decision.
+
 ## Documentation sync checklist
 
 When changing windowing docs:
