@@ -207,6 +207,11 @@ namespace ImGuiX::Windows {
         /// \details Override for logo/title text customization. Right-side control buttons are drawn separately.
         virtual void drawTitleBarText();
 
+        /// \brief Report whether the title-bar content occupies horizontal space.
+        /// \details Override when the title renderer intentionally draws no content while the
+        ///          logical window title is retained for other platform integrations.
+        virtual bool hasTitleBarContent() const;
+
         /// \brief Draw content inside optional left side panel.
         /// \details Called only when `m_config.side_panel_width > 0`.
         virtual void drawSidePanel() {}
