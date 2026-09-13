@@ -342,6 +342,25 @@ namespace ImGuiX::Windows {
                 RECT rect;
                 GetClientRect(hwnd, &rect);
 
+                // Native resize bands may overlap the custom title chrome. Give
+                // the actual controls precedence so the top edge cannot swallow
+                // clicks on the full-height NavigationStrip or system buttons.
+                // ImGui item rectangles are screen-space; WM_NCHITTEST's `pt`
+                // is client-space after ScreenToClient(), so compare the
+                // chrome rectangles with the original screen-space point.
+                const bool in_title_control =
+                    PtInRect(&m_minimize_btn_rect, screen_pt) ||
+                    PtInRect(&m_maximize_btn_rect, screen_pt) ||
+                    PtInRect(&m_close_btn_rect, screen_pt);
+                const bool in_title_bar_interactive_rect =
+                    screen_pt.x >= m_title_bar_interactive_rect.x &&
+                    screen_pt.x < m_title_bar_interactive_rect.z &&
+                    screen_pt.y >= m_title_bar_interactive_rect.y &&
+                    screen_pt.y < m_title_bar_interactive_rect.w;
+                if (in_title_control || in_title_bar_interactive_rect) {
+                    return HTCLIENT;
+                }
+
                 bool left   = pt.x < m_config.resize_border;
                 bool right  = pt.x >= rect.right - m_config.resize_border;
                 bool top    = pt.y < m_config.resize_border;
@@ -355,25 +374,6 @@ namespace ImGuiX::Windows {
                 if (right)  return HTRIGHT;
                 if (top)    return HTTOP;
                 if (bottom) return HTBOTTOM;
-
-                if (PtInRect(&m_minimize_btn_rect, pt)) {
-                    return HTCLIENT;
-                }
-                if (PtInRect(&m_maximize_btn_rect, pt)) {
-                    return HTCLIENT;
-                }
-                if (PtInRect(&m_close_btn_rect, pt)) {
-                    return HTCLIENT;
-                }
-
-                const bool in_title_bar_interactive_rect =
-                    pt.x >= m_title_bar_interactive_rect.x &&
-                    pt.x < m_title_bar_interactive_rect.z &&
-                    pt.y >= m_title_bar_interactive_rect.y &&
-                    pt.y < m_title_bar_interactive_rect.w;
-                if (in_title_bar_interactive_rect) {
-                    return HTCLIENT;
-                }
 
                 if (pt.y < m_config.title_bar_height) return HTCAPTION;
 

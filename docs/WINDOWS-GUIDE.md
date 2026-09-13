@@ -244,7 +244,11 @@ Notes:
 | `corner_icon_mode_icon_size` | Corner icon content size | `<0`: auto-fit with frame-aware compensation. |
 | `corner_icon_mode_gap` | Gap between icon area and title/side | `<0`: runtime `style.WindowPadding.x`. |
 | `corner_menu_bar_placement` | `MainRegion`, `InTitleBar`, `BelowTitleBar` | Effective only with `HasMenuBar`. |
-| `title_bar_menu_presentation` | `Menu` or `NavigationStrip` | Effective with `InTitleBar`; the strip removes the leading inset, starts at the title-region edge when the title is empty, and uses theme navigation surfaces. |
+| `title_bar_menu_presentation` | `Menu` or `NavigationStrip` | Effective with `InTitleBar`; the strip removes the leading inset, starts at the title-region edge when the title is empty, uses theme navigation surfaces, and keeps the internal title/body seam square. |
+
+`NavigationStrip` squares only the title surface's internal icon/body seam. It
+does not override independent rounding on the side-panel or main-content cards;
+those surfaces keep their own corner policy.
 
 ### Button labels and clear color
 
