@@ -27,6 +27,84 @@ namespace ImGuiX::I18N {
         try_load_plural_rules_from_default_location();
     }
 
+    LangStore::LangStore(LangStore&& other)
+        : m_key_pool(std::move(other.m_key_pool)),
+          m_base_dir(std::move(other.m_base_dir)),
+          m_default_lang(std::move(other.m_default_lang)),
+          m_current_lang(std::move(other.m_current_lang)),
+          m_en_map(std::move(other.m_en_map)),
+          m_lang_cache(std::move(other.m_lang_cache)),
+          m_label_cache(std::move(other.m_label_cache)),
+          m_md_cache(std::move(other.m_md_cache)),
+          m_plural_rules(std::move(other.m_plural_rules)) {
+        // m_current_map is initialized to this object's fallback map by its
+        // in-class initializer.  Rebind it to the moved current-language map;
+        // never retain the source object's address.
+        if (m_current_lang == m_default_lang) {
+            m_current_map = &m_en_map;
+        } else if (const auto it = m_lang_cache.find(m_current_lang);
+                   it != m_lang_cache.end()) {
+            m_current_map = &it->second;
+        } else {
+            m_current_lang = m_default_lang;
+            m_current_map = &m_en_map;
+        }
+        // The source maps contain string_view keys into the transferred key
+        // pool.  Leave the moved-from object in a genuinely empty, valid
+        // state instead of retaining dangling views into its now-empty pool.
+        other.m_en_map.clear();
+        other.m_lang_cache.clear();
+        other.m_label_cache.clear();
+        other.m_md_cache.clear();
+        other.m_key_pool.clear();
+        other.m_current_map = &other.m_en_map;
+        if (other.m_default_lang.empty()) {
+            other.m_current_lang.clear();
+        } else {
+            other.m_current_lang = other.m_default_lang;
+        }
+    }
+
+    LangStore& LangStore::operator=(LangStore&& other) {
+        if (this == &other) {
+            return *this;
+        }
+
+        m_key_pool = std::move(other.m_key_pool);
+        m_base_dir = std::move(other.m_base_dir);
+        m_default_lang = std::move(other.m_default_lang);
+        m_current_lang = std::move(other.m_current_lang);
+        m_en_map = std::move(other.m_en_map);
+        m_lang_cache = std::move(other.m_lang_cache);
+        m_label_cache = std::move(other.m_label_cache);
+        m_md_cache = std::move(other.m_md_cache);
+        m_plural_rules = std::move(other.m_plural_rules);
+
+        if (m_current_lang == m_default_lang) {
+            m_current_map = &m_en_map;
+        } else if (const auto it = m_lang_cache.find(m_current_lang);
+                   it != m_lang_cache.end()) {
+            m_current_map = &it->second;
+        } else {
+            m_current_lang = m_default_lang;
+            m_current_map = &m_en_map;
+        }
+        // See the move constructor: source maps must not retain views into a
+        // key pool that has just been transferred to this object.
+        other.m_en_map.clear();
+        other.m_lang_cache.clear();
+        other.m_label_cache.clear();
+        other.m_md_cache.clear();
+        other.m_key_pool.clear();
+        other.m_current_map = &other.m_en_map;
+        if (other.m_default_lang.empty()) {
+            other.m_current_lang.clear();
+        } else {
+            other.m_current_lang = other.m_default_lang;
+        }
+        return *this;
+    }
+
     void LangStore::set_base_dir(std::string base_dir, std::string default_lang) {
         const std::string previous_default_lang = m_default_lang;
         const std::string previous_current_lang = m_current_lang;

@@ -47,6 +47,17 @@ namespace ImGuiX::I18N {
         /// \param default_lang Default language (fallback), typically "en".
         explicit LangStore(std::string base_dir, std::string default_lang = u8"en");
 
+        // The store keeps non-owning string views into its key pool and a
+        // pointer to the currently selected language map.  Compiler-generated
+        // move operations would copy that pointer verbatim and leave it
+        // pointing at the moved-from object.  Keep moves explicit so the
+        // implementation can rebind the pointer after transferring ownership.
+        LangStore(LangStore&& other);
+        LangStore& operator=(LangStore&& other);
+
+        LangStore(const LangStore&) = delete;
+        LangStore& operator=(const LangStore&) = delete;
+
         /// \brief Replace the resource base directory and reload all language data.
         /// \param base_dir Root folder containing per-language subdirectories.
         /// \param default_lang Fallback language identifier.
