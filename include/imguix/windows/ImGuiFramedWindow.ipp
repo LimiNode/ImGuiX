@@ -323,6 +323,48 @@ namespace ImGuiX::Windows {
         ImGui::EndChild();
     }
 
+    bool ImGuiFramedWindow::drawTitleBarNavigationItem(
+        const char* label, const bool selected, const bool first_item) {
+        const bool navigation_strip =
+            m_config.title_bar_menu_presentation == TitleBarMenuPresentation::NavigationStrip;
+        if (!navigation_strip || !first_item) {
+            return ImGui::MenuItem(label, nullptr, selected);
+        }
+
+        const ImGuiStyle& style = ImGui::GetStyle();
+        const ImVec2 cursor = ImGui::GetCursorScreenPos();
+        const ImVec2 label_size = ImGui::CalcTextSize(label, nullptr, true);
+        const float left = cursor.x - style.ItemSpacing.x * 0.5f;
+        const float right = left + label_size.x + style.ItemSpacing.x;
+        const float top = ImGui::GetWindowPos().y;
+        const float bottom = top + static_cast<float>(m_config.title_bar_height);
+        const ImVec2 rect_min(left, top);
+        const ImVec2 rect_max(right, bottom);
+        const bool hovered = ImGui::IsMouseHoveringRect(rect_min, rect_max, true);
+        const bool held = hovered && ImGui::IsMouseDown(ImGuiMouseButton_Left);
+        const ImVec4& surface = held
+            ? style.Colors[ImGuiCol_HeaderActive]
+            : (hovered ? style.Colors[ImGuiCol_HeaderHovered]
+                       : (selected ? style.Colors[ImGuiCol_NavHighlight]
+                                   : ImVec4(0.0f, 0.0f, 0.0f, 0.0f)));
+        if (surface.w > 0.0f) {
+            ImGui::GetWindowDrawList()->AddRectFilled(
+                rect_min,
+                rect_max,
+                ImGui::GetColorU32(surface),
+                m_config.corner_icon_mode_rounding_radius,
+                ImDrawFlags_RoundCornersBottomLeft);
+        }
+
+        const ImGuiX::Extensions::ScopedStyleColor header(
+            ImGuiCol_Header, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        const ImGuiX::Extensions::ScopedStyleColor header_hovered(
+            ImGuiCol_HeaderHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        const ImGuiX::Extensions::ScopedStyleColor header_active(
+            ImGuiCol_HeaderActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        return ImGui::MenuItem(label, nullptr, selected);
+    }
+
     void ImGuiFramedWindow::drawClassicLayout(float menu_bar_height) {
         const ImGuiStyle& style = ImGui::GetStyle();
         const ImVec2 host_size = ImGui::GetWindowSize();
@@ -556,24 +598,17 @@ namespace ImGuiX::Windows {
         const float rounding = enable_rounding ? m_config.corner_icon_mode_rounding_radius : 0.0f;
         const bool no_top_left_corner = enable_rounding &&
             m_config.corner_rounding_style == CornerRoundingStyle::NoTopLeftOnTitleAndSide;
-        const bool navigation_strip = menu_in_title &&
-            m_config.title_bar_menu_presentation == TitleBarMenuPresentation::NavigationStrip;
-        // NavigationStrip makes the title/side boundary an internal, square
-        // junction. Keep only the outer chrome corner in the legacy style;
-        // the NoTopLeft style has no outer corner on these surfaces to retain.
+        // Keep the title/side chrome geometry stable; the leading NavigationStrip
+        // item mirrors the title surface's bottom-left rounding explicitly.
         const ImDrawFlags title_rounding_flags = enable_rounding
-            ? (navigation_strip
-                ? (no_top_left_corner ? ImDrawFlags_None : ImDrawFlags_RoundCornersTopLeft)
-                : (no_top_left_corner
-                    ? ImDrawFlags_RoundCornersBottomLeft
-                    : (ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomLeft)))
+            ? (no_top_left_corner
+                ? ImDrawFlags_RoundCornersBottomLeft
+                : (ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomLeft))
             : ImDrawFlags_None;
         const ImDrawFlags side_rounding_flags = enable_rounding
-            ? (navigation_strip
-                ? (no_top_left_corner ? ImDrawFlags_None : ImDrawFlags_RoundCornersTopLeft)
-                : (no_top_left_corner
-                    ? ImDrawFlags_RoundCornersTopRight
-                    : (ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersTopRight)))
+            ? (no_top_left_corner
+                ? ImDrawFlags_RoundCornersTopRight
+                : (ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersTopRight))
             : ImDrawFlags_None;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
