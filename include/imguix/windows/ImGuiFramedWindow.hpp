@@ -63,6 +63,8 @@
 
 #include <imgui.h>
 
+#include <cstddef>
+
 #include "corner_layout_options.hpp"
 #include "window_flags.hpp"
 
@@ -245,6 +247,16 @@ namespace ImGuiX::Windows {
         /// \param style Active Dear ImGui style reference.
         void drawCornerInTitleMenuRegion(float menu_bar_height, const ImGuiStyle& style);
 
+        /// \brief Draw one item in a title-bar NavigationStrip.
+        /// \details Dear ImGui remains the source of truth for the item's input,
+        ///          layout, and state. ImGuiX only masks the leading item's
+        ///          selected/hovered surface to the title chrome's bottom-left
+        ///          corner after reading the actual item rectangle.
+        /// \param label Visible label with an optional hidden ImGui ID suffix.
+        /// \param selected Whether the navigation item is selected.
+        /// \return True when the item was activated.
+        bool drawTitleBarNavigationItem(const char* label, bool selected);
+
         /// \brief Draw classic framed-window layout.
         /// \param menu_bar_height Menu bar height in pixels.
         void drawClassicLayout(float menu_bar_height);
@@ -277,6 +289,10 @@ namespace ImGuiX::Windows {
 
         /// \brief Render frame manually when required by backend.
         void renderFrameManually();
+
+        /// Index of the next item rendered by the current title-bar menu.
+        /// Reset immediately before invoking the derived drawMenuBar() hook.
+        std::size_t m_title_bar_navigation_item_index = 0;
 
     private:
         enum class ControlButtonsStyle {

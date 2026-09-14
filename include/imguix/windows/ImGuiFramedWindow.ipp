@@ -305,6 +305,7 @@ namespace ImGuiX::Windows {
             const ImGuiX::Extensions::ScopedStyleVar menu_item_spacing(
                 ImGuiStyleVar_ItemSpacing,
                 ImVec2(theme_item_spacing_x, title_menu_frame_padding_y * 2.0f));
+            m_title_bar_navigation_item_index = 0;
             drawMenuBar();
 
             // Only the occupied menu strip needs client hit-testing. Keep the remaining
@@ -321,6 +322,66 @@ namespace ImGuiX::Windows {
             }
         }
         ImGui::EndChild();
+    }
+
+    bool ImGuiFramedWindow::drawTitleBarNavigationItem(
+        const char* label, const bool selected) {
+        const bool navigation_strip =
+            m_config.title_bar_menu_presentation == TitleBarMenuPresentation::NavigationStrip;
+        const bool first_item = navigation_strip && m_title_bar_navigation_item_index++ == 0U;
+        if (!first_item) {
+            return ImGui::MenuItem(label, nullptr, selected);
+        }
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImDrawListSplitter splitter;
+        splitter.Split(draw_list, 2);
+        splitter.SetCurrentChannel(draw_list, 1);
+
+        bool activated = false;
+        {
+            const ImVec4 transparent(0.0f, 0.0f, 0.0f, 0.0f);
+            const ImGuiX::Extensions::ScopedStyleColor header(ImGuiCol_Header, transparent);
+            const ImGuiX::Extensions::ScopedStyleColor hovered(
+                ImGuiCol_HeaderHovered, transparent);
+            const ImGuiX::Extensions::ScopedStyleColor active(
+                ImGuiCol_HeaderActive, transparent);
+            activated = ImGui::MenuItem(label, nullptr, selected);
+        }
+
+        ImVec2 item_min = ImGui::GetItemRectMin();
+        ImVec2 item_max = ImGui::GetItemRectMax();
+        const bool hovered = ImGui::IsItemHovered();
+        const bool active = ImGui::IsItemActive();
+        item_min.y = ImGui::GetWindowPos().y;
+        item_max.y = item_min.y + static_cast<float>(m_config.title_bar_height);
+
+        const ImGuiStyle& style = ImGui::GetStyle();
+        const ImVec4* surface = nullptr;
+        if (active) {
+            surface = &style.Colors[ImGuiCol_HeaderActive];
+        } else if (hovered) {
+            surface = &style.Colors[ImGuiCol_HeaderHovered];
+        } else if (selected) {
+            surface = &style.Colors[ImGuiCol_NavHighlight];
+        }
+
+        if (surface != nullptr && surface->w > 0.0f) {
+            splitter.SetCurrentChannel(draw_list, 0);
+            const float radius = ImMin(
+                m_config.corner_icon_mode_rounding_radius,
+                ImMin((item_max.x - item_min.x) * 0.5f,
+                      (item_max.y - item_min.y) * 0.5f));
+            draw_list->AddRectFilled(
+                item_min,
+                item_max,
+                ImGui::GetColorU32(*surface),
+                radius,
+                ImDrawFlags_RoundCornersBottomLeft);
+        }
+
+        splitter.Merge(draw_list);
+        return activated;
     }
 
     void ImGuiFramedWindow::drawClassicLayout(float menu_bar_height) {
@@ -562,24 +623,24 @@ namespace ImGuiX::Windows {
         const bool no_top_left_corner = enable_rounding &&
             m_config.corner_rounding_style == CornerRoundingStyle::NoTopLeftOnTitleAndSide;
         ImDrawFlags title_rounding_flags = ImDrawFlags_None;
+        ImDrawFlags side_rounding_flags = ImDrawFlags_None;
         if (enable_rounding) {
             if (navigation_strip) {
-                // Dear ImGui treats a zero corner mask as "all corners" when a
-                // positive radius is supplied; use the explicit None flag so a
-                // NavigationStrip really keeps the internal title seam square.
-                title_rounding_flags = ImDrawFlags_RoundCornersNone;
+                // The title-region owns the internal seam near the corner icon.
+                // Keep its bottom-left arc stable across navigation selection.
+                title_rounding_flags = ImDrawFlags_RoundCornersBottomLeft;
+                // Do not introduce a second arc from the side-panel surface.
+                side_rounding_flags = ImDrawFlags_RoundCornersNone;
             } else if (no_top_left_corner) {
                 title_rounding_flags = ImDrawFlags_RoundCornersBottomLeft;
+                side_rounding_flags = ImDrawFlags_RoundCornersTopRight;
             } else {
                 title_rounding_flags =
                     ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomLeft;
+                side_rounding_flags =
+                    ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersTopRight;
             }
         }
-        const ImDrawFlags side_rounding_flags = enable_rounding
-            ? (no_top_left_corner
-                ? ImDrawFlags_RoundCornersTopRight
-                : (ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersTopRight))
-            : ImDrawFlags_None;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::BeginChild(
