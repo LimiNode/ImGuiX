@@ -228,91 +228,141 @@ namespace ImGuiX::Windows {
         return menu_bar_height;
     }
 
-    void ImGuiFramedWindow::drawCornerInTitleMenuRegion(float menu_bar_height, const ImGuiStyle& style) {
+    void ImGuiFramedWindow::drawCornerInTitleMenuRegion(
+            const ImGuiStyle& style) {
         if (!hasFlag(m_flags, WindowFlags::HasMenuBar)) {
             return;
         }
-        (void)menu_bar_height;
 
-        const float buttons_reserved = hasFlag(m_flags, WindowFlags::ShowControlButtons)
-            ? getControlButtonsReservedWidth()
-            : 0.0f;
-        const float cursor_after_title = ImGui::GetCursorPosX();
-        const ImVec2 last_item_max = ImGui::GetItemRectMax();
-        const float last_item_right_local = ImMax(0.0f, last_item_max.x - ImGui::GetWindowPos().x);
         const bool navigation_strip =
-            m_config.title_bar_menu_presentation == TitleBarMenuPresentation::NavigationStrip;
-        // An empty title leaves the cursor at the configured title-text inset.
-        // NavigationStrip owns that empty title region and must start flush at
-        // its edge even when the default title inset is non-zero.
-        const float menu_start_x = navigation_strip && !hasTitleBarContent()
-            ? 0.0f
-            : ImMax(cursor_after_title, last_item_right_local) +
-                  (navigation_strip ? 0.0f : style.ItemSpacing.x);
-        // A title-bar menu is part of the chrome itself. Give its child the full
-        // title height and size MenuItem frames to that same height so hover and
-        // selected backgrounds align with the native control buttons.
-        const float title_menu_height = static_cast<float>(m_config.title_bar_height);
-        const float menu_y = 0.0f;
+            m_config.title_bar_menu_presentation ==
+            TitleBarMenuPresentation::NavigationStrip;
+
+        const bool has_title_content = hasTitleBarContent();
+
+        float menu_start_x = 0.0f;
+
+        if (navigation_strip && !has_title_content) {
+            // Keep the first inset control away from the icon/title seam.
+            menu_start_x = style.WindowPadding.x;
+        } else {
+            const float cursor_after_title = ImGui::GetCursorPosX();
+
+            const ImVec2 last_item_max = ImGui::GetItemRectMax();
+            const float last_item_right_local = ImMax(
+                0.0f,
+                last_item_max.x - ImGui::GetWindowPos().x);
+
+            menu_start_x =
+                ImMax(cursor_after_title, last_item_right_local) +
+                style.ItemSpacing.x;
+        }
+
+        const float buttons_reserved =
+            hasFlag(m_flags, WindowFlags::ShowControlButtons)
+                ? getControlButtonsReservedWidth()
+                : 0.0f;
+
+        const float title_menu_height =
+            static_cast<float>(m_config.title_bar_height);
+
         const float menu_right_limit =
-            ImGui::GetWindowWidth() - buttons_reserved - style.WindowPadding.x - style.ItemSpacing.x;
-        const float title_menu_width = ImMax(0.0f, menu_right_limit - menu_start_x);
-        m_title_bar_interactive_rect = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+            ImGui::GetWindowWidth() -
+            buttons_reserved -
+            style.WindowPadding.x -
+            style.ItemSpacing.x;
+
+        const float title_menu_width =
+            ImMax(0.0f, menu_right_limit - menu_start_x);
+
+        m_title_bar_interactive_rect =
+            ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+
         if (title_menu_width <= 0.0f) {
             return;
         }
 
-        // The rest of the custom title bar is draggable on Windows (HTCAPTION),
-        // but menu items must remain client controls so Dear ImGui receives clicks.
-        ImGui::SetCursorPos(ImVec2(menu_start_x, menu_y));
+        // The remaining part of the title bar is draggable on Windows,
+        // while the menu region must stay client-interactive.
+        ImGui::SetCursorPos(
+            ImVec2(menu_start_x, 0.0f));
+
         const float title_menu_frame_padding_y = ImMax(
-            0.0f, (title_menu_height - ImGui::GetTextLineHeight()) * 0.5f);
+            0.0f,
+            (title_menu_height - ImGui::GetTextLineHeight()) * 0.5f);
+
         const ImGuiX::Extensions::ScopedStyleVar child_rounding(
-            ImGuiStyleVar_ChildRounding, 0.0f);
+            ImGuiStyleVar_ChildRounding,
+            0.0f);
+
         const ImGuiX::Extensions::ScopedStyleVar frame_padding(
             ImGuiStyleVar_FramePadding,
-            ImVec2(ImGui::GetStyle().FramePadding.x, title_menu_frame_padding_y));
-        const float theme_item_spacing_x = style.ItemSpacing.x;
-        // Horizontal menu items are Selectable widgets whose background expands
-        // by half ItemSpacing on each vertical side. Match that expansion to the
-        // frame padding so their hover/selected surface spans the full title bar.
+            ImVec2(
+                style.FramePadding.x,
+                title_menu_frame_padding_y));
+
+        // Preserve normal spacing for inset controls. Legacy menu presentation
+        // still expands its vertical spacing to the configured title height.
         const ImGuiX::Extensions::ScopedStyleVar item_spacing(
             ImGuiStyleVar_ItemSpacing,
-            ImVec2(navigation_strip ? 0.0f : theme_item_spacing_x,
-                   title_menu_frame_padding_y * 2.0f));
+            ImVec2(
+                style.ItemSpacing.x,
+                navigation_strip
+                    ? style.ItemSpacing.y
+                    : title_menu_frame_padding_y * 2.0f));
+
         const ImGuiX::Extensions::ScopedStyleVar child_padding(
             ImGuiStyleVar_WindowPadding,
-            ImVec2(navigation_strip ? 0.0f : style.WindowPadding.x, style.WindowPadding.y));
+            ImVec2(
+                navigation_strip ? 0.0f : style.WindowPadding.x,
+                style.WindowPadding.y));
+
         if (ImGui::BeginChild(
                 u8"##imguix_title_menu_bar",
                 ImVec2(title_menu_width, title_menu_height),
                 ImGuiChildFlags_None,
                 ImGuiWindowFlags_MenuBar |
-                ImGuiWindowFlags_NoScrollbar |
-                ImGuiWindowFlags_NoDecoration |
-                ImGuiWindowFlags_NoBackground
-            )) {
-            const ImVec2 menu_window_pos = ImGui::GetWindowPos();
+                    ImGuiWindowFlags_NoScrollbar |
+                    ImGuiWindowFlags_NoDecoration |
+                    ImGuiWindowFlags_NoBackground)) {
+            const ImVec2 menu_window_pos =
+                ImGui::GetWindowPos();
+
             const ImGuiX::Extensions::ScopedStyleColor menu_bar_bg(
-                ImGuiCol_MenuBarBg, ImVec4(0, 0, 0, 0));
+                ImGuiCol_MenuBarBg,
+                ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+
             const ImGuiX::Extensions::ScopedStyleColor header(
                 ImGuiCol_Header,
-                navigation_strip ? style.Colors[ImGuiCol_NavHighlight] : ImVec4(0, 0, 0, 0));
-            const ImGuiX::Extensions::ScopedStyleColor header_hovered(
-                ImGuiCol_HeaderHovered, style.Colors[ImGuiCol_HeaderHovered]);
-            const ImGuiX::Extensions::ScopedStyleColor header_active(
-                ImGuiCol_HeaderActive, style.Colors[ImGuiCol_HeaderActive]);
-            const ImGuiX::Extensions::ScopedStyleVar menu_item_spacing(
-                ImGuiStyleVar_ItemSpacing,
-                ImVec2(theme_item_spacing_x, title_menu_frame_padding_y * 2.0f));
-            m_title_bar_navigation_item_index = 0;
-            drawMenuBar();
+                navigation_strip
+                    ? style.Colors[ImGuiCol_NavHighlight]
+                    : ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
-            // Only the occupied menu strip needs client hit-testing. Keep the remaining
-            // title-bar area draggable, especially on wide windows with a short menu.
+            const ImGuiX::Extensions::ScopedStyleColor header_hovered(
+                ImGuiCol_HeaderHovered,
+                style.Colors[ImGuiCol_HeaderHovered]);
+
+            const ImGuiX::Extensions::ScopedStyleColor header_active(
+                ImGuiCol_HeaderActive,
+                style.Colors[ImGuiCol_HeaderActive]);
+
+            if (navigation_strip) {
+                drawMenuBar();
+            } else {
+                const ImGuiX::Extensions::ScopedStyleVar menu_item_spacing(
+                    ImGuiStyleVar_ItemSpacing,
+                    ImVec2(
+                        style.ItemSpacing.x,
+                        title_menu_frame_padding_y * 2.0f));
+                drawMenuBar();
+            }
+
+            // Draw-list operations above do not submit ImGui items, therefore
+            // GetItemRectMax() still refers to the last item produced by drawMenuBar().
             const float menu_content_right = ImMin(
                 menu_window_pos.x + title_menu_width,
                 ImGui::GetItemRectMax().x + style.ItemSpacing.x);
+
             if (menu_content_right > menu_window_pos.x) {
                 m_title_bar_interactive_rect = ImVec4(
                     menu_window_pos.x,
@@ -321,67 +371,8 @@ namespace ImGuiX::Windows {
                     menu_window_pos.y + title_menu_height);
             }
         }
+
         ImGui::EndChild();
-    }
-
-    bool ImGuiFramedWindow::drawTitleBarNavigationItem(
-        const char* label, const bool selected) {
-        const bool navigation_strip =
-            m_config.title_bar_menu_presentation == TitleBarMenuPresentation::NavigationStrip;
-        const bool first_item = navigation_strip && m_title_bar_navigation_item_index++ == 0U;
-        if (!first_item) {
-            return ImGui::MenuItem(label, nullptr, selected);
-        }
-
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImDrawListSplitter splitter;
-        splitter.Split(draw_list, 2);
-        splitter.SetCurrentChannel(draw_list, 1);
-
-        bool activated = false;
-        {
-            const ImVec4 transparent(0.0f, 0.0f, 0.0f, 0.0f);
-            const ImGuiX::Extensions::ScopedStyleColor header(ImGuiCol_Header, transparent);
-            const ImGuiX::Extensions::ScopedStyleColor hovered(
-                ImGuiCol_HeaderHovered, transparent);
-            const ImGuiX::Extensions::ScopedStyleColor active(
-                ImGuiCol_HeaderActive, transparent);
-            activated = ImGui::MenuItem(label, nullptr, selected);
-        }
-
-        ImVec2 item_min = ImGui::GetItemRectMin();
-        ImVec2 item_max = ImGui::GetItemRectMax();
-        const bool hovered = ImGui::IsItemHovered();
-        const bool active = ImGui::IsItemActive();
-        item_min.y = ImGui::GetWindowPos().y;
-        item_max.y = item_min.y + static_cast<float>(m_config.title_bar_height);
-
-        const ImGuiStyle& style = ImGui::GetStyle();
-        const ImVec4* surface = nullptr;
-        if (active) {
-            surface = &style.Colors[ImGuiCol_HeaderActive];
-        } else if (hovered) {
-            surface = &style.Colors[ImGuiCol_HeaderHovered];
-        } else if (selected) {
-            surface = &style.Colors[ImGuiCol_NavHighlight];
-        }
-
-        if (surface != nullptr && surface->w > 0.0f) {
-            splitter.SetCurrentChannel(draw_list, 0);
-            const float radius = ImMin(
-                m_config.corner_icon_mode_rounding_radius,
-                ImMin((item_max.x - item_min.x) * 0.5f,
-                      (item_max.y - item_min.y) * 0.5f));
-            draw_list->AddRectFilled(
-                item_min,
-                item_max,
-                ImGui::GetColorU32(*surface),
-                radius,
-                ImDrawFlags_RoundCornersBottomLeft);
-        }
-
-        splitter.Merge(draw_list);
-        return activated;
     }
 
     void ImGuiFramedWindow::drawClassicLayout(float menu_bar_height) {
@@ -570,309 +561,21 @@ namespace ImGuiX::Windows {
 
     void ImGuiFramedWindow::drawCornerLayout(float menu_bar_height) {
         const ImGuiStyle& style = ImGui::GetStyle();
-        const ImVec2 host_size = ImGui::GetWindowSize();
-        const float body_y = static_cast<float>(m_config.title_bar_height);
-        const float body_h = ImMax(0.0f, host_size.y - body_y);
-        const float body_width = ImMax(0.0f, host_size.x);
-        const float icon_slot = static_cast<float>(m_config.title_bar_height);
-        const float corner_gap = ImMax(
-            0.0f,
-            m_config.corner_icon_mode_gap >= 0.0f
-                ? m_config.corner_icon_mode_gap
-                : style.WindowPadding.x);
-        const float icon_area_width = m_config.corner_icon_mode_area_width >= 0.0f
-            ? m_config.corner_icon_mode_area_width
-            : icon_slot + corner_gap;
-        const float icon_surface_w = ImMin(body_width, ImMax(0.0f, icon_area_width));
-        const float requested_side_panel_width =
-            m_config.side_panel_width > 0 ? static_cast<float>(m_config.side_panel_width) : icon_surface_w;
-        const float side_panel_width = ImMin(requested_side_panel_width, body_width);
-        const float main_region_width = ImMax(0.0f, body_width - side_panel_width);
-        const float side_h = ImMax(0.0f, body_h - corner_gap);
-        const bool has_corner_menu = hasFlag(m_flags, WindowFlags::HasMenuBar);
-        const bool menu_in_title =
-            has_corner_menu && m_config.corner_menu_bar_placement == CornerMenuBarPlacement::InTitleBar;
-        const bool menu_below_title =
-            has_corner_menu && m_config.corner_menu_bar_placement == CornerMenuBarPlacement::BelowTitleBar;
-        const bool menu_main_region =
-            has_corner_menu && m_config.corner_menu_bar_placement == CornerMenuBarPlacement::MainRegion;
 
-        ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
-        if (ImGui::BeginChild(
-                u8"##imguix_corner_icon",
-                ImVec2(icon_surface_w, m_config.title_bar_height),
-                ImGuiChildFlags_None,
-                ImGuiWindowFlags_NoScrollbar |
-                ImGuiWindowFlags_NoDecoration |
-                ImGuiWindowFlags_NoBackground
-            )) {
-            drawCornerIcon();
-        }
-        ImGui::EndChild();
+        const CornerLayoutState layout =
+            computeCornerLayoutState(style);
 
-        ImGui::SetCursorPos(ImVec2(icon_surface_w, 0.0f));
-        const float stroke = ImMax(0.0f, m_config.frame_stroke_thickness);
-        const float title_w = ImMax(0.0f, body_width - icon_surface_w);
-        const bool enable_rounding = hasFlag(m_flags, WindowFlags::CornerModeRounding);
-        const float rounding = enable_rounding
-            ? m_config.corner_icon_mode_rounding_radius
-            : 0.0f;
-        const bool navigation_strip =
-            menu_in_title &&
-            m_config.title_bar_menu_presentation == TitleBarMenuPresentation::NavigationStrip;
-        const bool no_top_left_corner = enable_rounding &&
-            m_config.corner_rounding_style == CornerRoundingStyle::NoTopLeftOnTitleAndSide;
-        ImDrawFlags title_rounding_flags = ImDrawFlags_None;
-        ImDrawFlags side_rounding_flags = ImDrawFlags_None;
-        if (enable_rounding) {
-            if (navigation_strip) {
-                // The title-region owns the internal seam near the corner icon.
-                // Keep its bottom-left arc stable across navigation selection.
-                title_rounding_flags = ImDrawFlags_RoundCornersBottomLeft;
-                // Do not introduce a second arc from the side-panel surface.
-                side_rounding_flags = ImDrawFlags_RoundCornersNone;
-            } else if (no_top_left_corner) {
-                title_rounding_flags = ImDrawFlags_RoundCornersBottomLeft;
-                side_rounding_flags = ImDrawFlags_RoundCornersTopRight;
-            } else {
-                title_rounding_flags =
-                    ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomLeft;
-                side_rounding_flags =
-                    ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersTopRight;
-            }
+        drawCornerIconRegion(layout);
+        drawCornerTitleRegion(layout, style);
+
+        if (layout.has_side_panel) {
+            drawCornerSidePanelRegion(layout, style);
         }
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::BeginChild(
-            u8"##imguix_title_bar",
-            ImVec2(title_w, m_config.title_bar_height),
-            ImGuiChildFlags_None,
-            ImGuiWindowFlags_NoScrollbar |
-            ImGuiWindowFlags_NoDecoration |
-            ImGuiWindowFlags_NoBackground);
-        {
-            const ImVec2 p_min = ImGui::GetWindowPos();
-            const ImVec2 p_max = ImVec2(p_min.x + ImGui::GetWindowWidth(), p_min.y + m_config.title_bar_height);
-            ImGui::GetWindowDrawList()->AddRectFilled(
-                p_min,
-                p_max,
-                ImGui::GetColorU32(ImGuiCol_TitleBgActive),
-                rounding,
-                title_rounding_flags);
-        }
-
-        ImGui::SetCursorPosX(ImMax(ImGui::GetCursorPosX(), computeTitleTextLeftInset(ImGui::GetStyle())));
-        drawTitleBarText();
-        if (menu_in_title) {
-            drawCornerInTitleMenuRegion(menu_bar_height, style);
-        }
-
-        if (hasFlag(m_flags, WindowFlags::ShowControlButtons)) {
-            switch (resolveControlButtonsStyle()) {
-                case ControlButtonsStyle::Mac:
-                    drawMacStyledControlButtons();
-                    break;
-                case ControlButtonsStyle::ImGui:
-                    drawImGuiStyledControlButtons();
-                    break;
-                case ControlButtonsStyle::Classic:
-                default:
-                    drawControlButtons();
-                    break;
-            }
-        }
-
-        if (hasFlag(m_flags, WindowFlags::CornerModeBorder) && stroke > 0.0f) {
-            const ImVec2 p_min = ImGui::GetWindowPos();
-            const ImVec2 p_max = ImVec2(p_min.x + ImGui::GetWindowWidth(), p_min.y + m_config.title_bar_height);
-            const ImU32 sep_col = ImGui::GetColorU32(ImGuiCol_Border);
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            const float clip_right = ImMax(p_min.x, p_max.x - stroke);
-            draw_list->PushClipRect(p_min, ImVec2(clip_right, p_max.y), true);
-            draw_list->AddRect(
-                p_min,
-                p_max,
-                sep_col,
-                rounding,
-                title_rounding_flags,
-                stroke);
-            draw_list->PopClipRect();
-        }
-        ImGui::EndChild();
-        ImGui::PopStyleVar();
-
-        if (side_panel_width <= 0.0f) {
-            float menu_height = 0.0f;
-            if (menu_below_title) {
-                const LayoutRect corner_menu_rect = insetRectByHostFrameAdjacency(
-                    0.0f,
-                    body_y,
-                    body_width,
-                    menu_bar_height,
-                    true,
-                    false,
-                    true,
-                    false);
-                menu_height = drawCornerBelowTitleMenuRegion(
-                    corner_menu_rect.x,
-                    corner_menu_rect.y,
-                    corner_menu_rect.width,
-                    corner_menu_rect.height);
-            } else if (menu_main_region) {
-                const LayoutRect main_menu_rect = insetRectByHostFrameAdjacency(
-                    0.0f,
-                    body_y,
-                    body_width,
-                    menu_bar_height,
-                    true,
-                    false,
-                    true,
-                    false);
-                menu_height = drawClassicMainMenuRegion(
-                    main_menu_rect.x,
-                    main_menu_rect.y,
-                    main_menu_rect.width,
-                    main_menu_rect.height);
-            }
-            const LayoutRect main_region_rect = insetRectByHostFrameAdjacency(
-                0.0f,
-                body_y + menu_height,
-                body_width,
-                ImMax(0.0f, body_h - menu_height),
-                true,
-                false,
-                true,
-                true);
-            const ImVec2 main_region_padding = computeMainRegionPadding(style);
-            ImGui::SetCursorPos(ImVec2(main_region_rect.x, main_region_rect.y));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, main_region_padding);
-            if (ImGui::BeginChild(
-                    u8"##imguix_main_region",
-                    ImVec2(main_region_rect.width, main_region_rect.height),
-                    ImGuiChildFlags_AlwaysUseWindowPadding,
-                    ImGuiWindowFlags_NoScrollbar |
-                    ImGuiWindowFlags_NoDecoration |
-                    ImGuiWindowFlags_NoBackground
-                )) {
-                drawControllersContent();
-            }
-            ImGui::EndChild();
-            ImGui::PopStyleVar();
-            return;
-        }
-
-        ImGui::SetCursorPos(ImVec2(0.0f, body_y + corner_gap));
-        if (ImGui::BeginChild(
-                u8"##imguix_side_panel",
-                ImVec2(side_panel_width, side_h),
-                ImGuiChildFlags_AlwaysUseWindowPadding,
-                ImGuiWindowFlags_NoScrollbar |
-                ImGuiWindowFlags_NoDecoration |
-                ImGuiWindowFlags_NoBackground
-            )) {
-            const ImVec2 p_min = ImGui::GetWindowPos();
-            const ImVec2 p_max = ImVec2(p_min.x + ImGui::GetWindowWidth(), p_min.y + ImGui::GetWindowHeight());
-            ImGui::GetWindowDrawList()->AddRectFilled(
-                p_min,
-                p_max,
-                ImGui::GetColorU32(ImGuiCol_TitleBgActive),
-                rounding,
-                side_rounding_flags);
-            if (hasFlag(m_flags, WindowFlags::CornerModeBorder) && stroke > 0.0f) {
-                const ImU32 sep_col = ImGui::GetColorU32(ImGuiCol_Border);
-                ImGui::GetWindowDrawList()->AddRect(
-                    p_min,
-                    p_max,
-                    sep_col,
-                    rounding,
-                    side_rounding_flags,
-                    stroke);
-            }
-            const SidePanelContentRegion content_region =
-                computeSidePanelContentRegion(style, side_panel_width);
-            if (content_region.width > 0.0f) {
-                const float content_y = ImGui::GetCursorPosY();
-                const float content_h = ImMax(0.0f, ImGui::GetContentRegionAvail().y);
-                ImGui::SetCursorPos(ImVec2(content_region.x, content_y));
-                if (ImGui::BeginChild(
-                        u8"##imguix_side_panel_content",
-                        ImVec2(content_region.width, content_h),
-                        ImGuiChildFlags_None,
-                        ImGuiWindowFlags_NoScrollbar |
-                        ImGuiWindowFlags_NoDecoration |
-                        ImGuiWindowFlags_NoBackground
-                    )) {
-                    drawSidePanel();
-                }
-                ImGui::EndChild();
-            }
-        }
-        ImGui::EndChild();
-
-        const float main_region_x = side_panel_width;
-        const float corner_menu_height = [&]() {
-            if (!menu_below_title) {
-                return 0.0f;
-            }
-            const LayoutRect corner_menu_rect = insetRectByHostFrameAdjacency(
-                main_region_x,
-                body_y,
-                main_region_width,
-                menu_bar_height,
-                false,
-                false,
-                true,
-                false);
-            return drawCornerBelowTitleMenuRegion(
-                corner_menu_rect.x,
-                corner_menu_rect.y,
-                corner_menu_rect.width,
-                corner_menu_rect.height);
-        }();
-        const float main_menu_height = [&]() {
-            if (!menu_main_region) {
-                return 0.0f;
-            }
-            const LayoutRect main_menu_rect = insetRectByHostFrameAdjacency(
-                main_region_x,
-                body_y,
-                main_region_width,
-                menu_bar_height,
-                false,
-                false,
-                true,
-                false);
-            return drawClassicMainMenuRegion(
-                main_menu_rect.x,
-                main_menu_rect.y,
-                main_menu_rect.width,
-                main_menu_rect.height);
-        }();
-        const LayoutRect main_region_rect = insetRectByHostFrameAdjacency(
-            main_region_x,
-            body_y + corner_menu_height + main_menu_height,
-            main_region_width,
-            ImMax(0.0f, body_h - corner_menu_height - main_menu_height),
-            false,
-            false,
-            true,
-            true);
-        const ImVec2 main_region_padding = computeMainRegionPadding(style);
-
-        ImGui::SetCursorPos(ImVec2(main_region_rect.x, main_region_rect.y));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, main_region_padding);
-        if (ImGui::BeginChild(
-                u8"##imguix_main_region",
-                ImVec2(main_region_rect.width, main_region_rect.height),
-                ImGuiChildFlags_AlwaysUseWindowPadding,
-                ImGuiWindowFlags_NoScrollbar |
-                ImGuiWindowFlags_NoDecoration |
-                ImGuiWindowFlags_NoBackground
-            )) {
-            drawControllersContent();
-        }
-        ImGui::EndChild();
-        ImGui::PopStyleVar();
+        drawCornerMainRegion(
+            layout,
+            style,
+            menu_bar_height);
     }
 
     // Compact control-buttons geometry is enabled only for corner chrome with explicit border.
@@ -1199,6 +902,411 @@ namespace ImGuiX::Windows {
         drawUi();
         drawContent();
         present();
+    }
+
+    ImGuiFramedWindow::CornerLayoutState
+    ImGuiFramedWindow::computeCornerLayoutState(
+            const ImGuiStyle& style) const {
+        CornerLayoutState layout{};
+
+        const ImVec2 host_size = ImGui::GetWindowSize();
+
+        layout.body_y =
+            static_cast<float>(m_config.title_bar_height);
+
+        layout.body_h =
+            ImMax(0.0f, host_size.y - layout.body_y);
+
+        layout.body_width =
+            ImMax(0.0f, host_size.x);
+
+        const float icon_slot =
+            static_cast<float>(m_config.title_bar_height);
+
+        layout.corner_gap = ImMax(
+            0.0f,
+            m_config.corner_icon_mode_gap >= 0.0f
+                ? m_config.corner_icon_mode_gap
+                : style.WindowPadding.x);
+
+        const float icon_area_width =
+            m_config.corner_icon_mode_area_width >= 0.0f
+                ? m_config.corner_icon_mode_area_width
+                : icon_slot + layout.corner_gap;
+
+        layout.icon_surface_w = ImMin(
+            layout.body_width,
+            ImMax(0.0f, icon_area_width));
+
+        const float requested_side_panel_width =
+            m_config.side_panel_width > 0
+                ? static_cast<float>(m_config.side_panel_width)
+                : layout.icon_surface_w;
+
+        layout.side_panel_width = ImMin(
+            requested_side_panel_width,
+            layout.body_width);
+
+        layout.has_side_panel =
+            layout.side_panel_width > 0.0f;
+
+        layout.main_region_x =
+            layout.has_side_panel
+                ? layout.side_panel_width
+                : 0.0f;
+
+        layout.main_region_width = ImMax(
+            0.0f,
+            layout.body_width - layout.main_region_x);
+
+        layout.side_h = ImMax(
+            0.0f,
+            layout.body_h - layout.corner_gap);
+
+        layout.title_w = ImMax(
+            0.0f,
+            layout.body_width - layout.icon_surface_w);
+
+        layout.stroke =
+            ImMax(0.0f, m_config.frame_stroke_thickness);
+
+        const bool has_menu_bar =
+            hasFlag(m_flags, WindowFlags::HasMenuBar);
+
+        layout.menu_in_title =
+            has_menu_bar &&
+            m_config.corner_menu_bar_placement ==
+                CornerMenuBarPlacement::InTitleBar;
+
+        layout.menu_below_title =
+            has_menu_bar &&
+            m_config.corner_menu_bar_placement ==
+                CornerMenuBarPlacement::BelowTitleBar;
+
+        layout.menu_main_region =
+            has_menu_bar &&
+            m_config.corner_menu_bar_placement ==
+                CornerMenuBarPlacement::MainRegion;
+
+        const bool enable_rounding =
+            hasFlag(m_flags, WindowFlags::CornerModeRounding);
+
+        if (!enable_rounding) {
+            return layout;
+        }
+
+        layout.rounding =
+            ImMax(
+                0.0f,
+                m_config.corner_icon_mode_rounding_radius);
+
+        const bool no_top_left_corner =
+            m_config.corner_rounding_style ==
+                CornerRoundingStyle::NoTopLeftOnTitleAndSide;
+
+        if (no_top_left_corner) {
+            layout.title_rounding_flags =
+                ImDrawFlags_RoundCornersBottomLeft;
+
+            layout.side_rounding_flags =
+                ImDrawFlags_RoundCornersTopRight;
+        } else {
+            layout.title_rounding_flags =
+                ImDrawFlags_RoundCornersTopLeft |
+                ImDrawFlags_RoundCornersBottomLeft;
+
+            layout.side_rounding_flags =
+                ImDrawFlags_RoundCornersTopLeft |
+                ImDrawFlags_RoundCornersTopRight;
+        }
+
+        return layout;
+    }
+
+    void ImGuiFramedWindow::drawCornerIconRegion(
+            const CornerLayoutState& layout) {
+        ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
+
+        if (ImGui::BeginChild(
+                u8"##imguix_corner_icon",
+                ImVec2(
+                    layout.icon_surface_w,
+                    static_cast<float>(m_config.title_bar_height)),
+                ImGuiChildFlags_None,
+                ImGuiWindowFlags_NoScrollbar |
+                    ImGuiWindowFlags_NoDecoration |
+                    ImGuiWindowFlags_NoBackground)) {
+            drawCornerIcon();
+        }
+
+        ImGui::EndChild();
+    }
+
+    void ImGuiFramedWindow::drawCornerTitleRegion(
+            const CornerLayoutState& layout,
+            const ImGuiStyle& style) {
+        ImGui::SetCursorPos(
+            ImVec2(layout.icon_surface_w, 0.0f));
+
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_WindowPadding,
+            ImVec2(0.0f, 0.0f));
+
+        ImGui::BeginChild(
+            u8"##imguix_title_bar",
+            ImVec2(
+                layout.title_w,
+                static_cast<float>(m_config.title_bar_height)),
+            ImGuiChildFlags_None,
+            ImGuiWindowFlags_NoScrollbar |
+                ImGuiWindowFlags_NoDecoration |
+                ImGuiWindowFlags_NoBackground);
+
+        {
+            const ImVec2 p_min =
+                ImGui::GetWindowPos();
+
+            const ImVec2 p_max(
+                p_min.x + ImGui::GetWindowWidth(),
+                p_min.y +
+                    static_cast<float>(m_config.title_bar_height));
+
+            ImGui::GetWindowDrawList()->AddRectFilled(
+                p_min,
+                p_max,
+                ImGui::GetColorU32(ImGuiCol_TitleBgActive),
+                layout.rounding,
+                layout.title_rounding_flags);
+        }
+
+        ImGui::SetCursorPosX(
+            ImMax(
+                ImGui::GetCursorPosX(),
+                computeTitleTextLeftInset(style)));
+
+        drawTitleBarText();
+
+        if (layout.menu_in_title) {
+            drawCornerInTitleMenuRegion(style);
+        }
+
+        if (hasFlag(
+                m_flags,
+                WindowFlags::ShowControlButtons)) {
+            switch (resolveControlButtonsStyle()) {
+                case ControlButtonsStyle::Mac:
+                    drawMacStyledControlButtons();
+                    break;
+
+                case ControlButtonsStyle::ImGui:
+                    drawImGuiStyledControlButtons();
+                    break;
+
+                case ControlButtonsStyle::Classic:
+                default:
+                    drawControlButtons();
+                    break;
+            }
+        }
+
+        if (hasFlag(
+                m_flags,
+                WindowFlags::CornerModeBorder) &&
+            layout.stroke > 0.0f) {
+            const ImVec2 p_min =
+                ImGui::GetWindowPos();
+
+            const ImVec2 p_max(
+                p_min.x + ImGui::GetWindowWidth(),
+                p_min.y +
+                    static_cast<float>(m_config.title_bar_height));
+
+            const ImU32 border_color =
+                ImGui::GetColorU32(ImGuiCol_Border);
+
+            ImDrawList* draw_list =
+                ImGui::GetWindowDrawList();
+            draw_list->AddRect(
+                p_min,
+                p_max,
+                border_color,
+                layout.rounding,
+                layout.title_rounding_flags,
+                layout.stroke);
+        }
+
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
+    }
+
+    void ImGuiFramedWindow::drawCornerSidePanelRegion(
+            const CornerLayoutState& layout,
+            const ImGuiStyle& style) {
+        ImGui::SetCursorPos(
+            ImVec2(
+                0.0f,
+                layout.body_y + layout.corner_gap));
+
+        if (ImGui::BeginChild(
+                u8"##imguix_side_panel",
+                ImVec2(
+                    layout.side_panel_width,
+                    layout.side_h),
+                ImGuiChildFlags_AlwaysUseWindowPadding,
+                ImGuiWindowFlags_NoScrollbar |
+                    ImGuiWindowFlags_NoDecoration |
+                    ImGuiWindowFlags_NoBackground)) {
+            const ImVec2 p_min =
+                ImGui::GetWindowPos();
+
+            const ImVec2 p_max(
+                p_min.x + ImGui::GetWindowWidth(),
+                p_min.y + ImGui::GetWindowHeight());
+
+            ImGui::GetWindowDrawList()->AddRectFilled(
+                p_min,
+                p_max,
+                ImGui::GetColorU32(ImGuiCol_TitleBgActive),
+                layout.rounding,
+                layout.side_rounding_flags);
+
+            if (hasFlag(
+                    m_flags,
+                    WindowFlags::CornerModeBorder) &&
+                layout.stroke > 0.0f) {
+                ImGui::GetWindowDrawList()->AddRect(
+                    p_min,
+                    p_max,
+                    ImGui::GetColorU32(ImGuiCol_Border),
+                    layout.rounding,
+                    layout.side_rounding_flags,
+                    layout.stroke);
+            }
+
+            const SidePanelContentRegion content_region =
+                computeSidePanelContentRegion(
+                    style,
+                    layout.side_panel_width);
+
+            if (content_region.width > 0.0f) {
+                const float content_y =
+                    ImGui::GetCursorPosY();
+
+                const float content_h =
+                    ImMax(
+                        0.0f,
+                        ImGui::GetContentRegionAvail().y);
+
+                ImGui::SetCursorPos(
+                    ImVec2(
+                        content_region.x,
+                        content_y));
+
+                if (ImGui::BeginChild(
+                        u8"##imguix_side_panel_content",
+                        ImVec2(
+                            content_region.width,
+                            content_h),
+                        ImGuiChildFlags_None,
+                        ImGuiWindowFlags_NoScrollbar |
+                            ImGuiWindowFlags_NoDecoration |
+                            ImGuiWindowFlags_NoBackground)) {
+                    drawSidePanel();
+                }
+
+                ImGui::EndChild();
+            }
+        }
+
+        ImGui::EndChild();
+    }
+
+    void ImGuiFramedWindow::drawCornerMainRegion(
+            const CornerLayoutState& layout,
+            const ImGuiStyle& style,
+            float menu_bar_height) {
+        const bool touches_left =
+            !layout.has_side_panel;
+
+        float menu_height = 0.0f;
+
+        if (layout.menu_below_title) {
+            const LayoutRect menu_rect =
+                insetRectByHostFrameAdjacency(
+                    layout.main_region_x,
+                    layout.body_y,
+                    layout.main_region_width,
+                    menu_bar_height,
+                    touches_left,
+                    false,
+                    true,
+                    false);
+
+            menu_height =
+                drawCornerBelowTitleMenuRegion(
+                    menu_rect.x,
+                    menu_rect.y,
+                    menu_rect.width,
+                    menu_rect.height);
+        } else if (layout.menu_main_region) {
+            const LayoutRect menu_rect =
+                insetRectByHostFrameAdjacency(
+                    layout.main_region_x,
+                    layout.body_y,
+                    layout.main_region_width,
+                    menu_bar_height,
+                    touches_left,
+                    false,
+                    true,
+                    false);
+
+            menu_height =
+                drawClassicMainMenuRegion(
+                    menu_rect.x,
+                    menu_rect.y,
+                    menu_rect.width,
+                    menu_rect.height);
+        }
+
+        const LayoutRect main_region_rect =
+            insetRectByHostFrameAdjacency(
+                layout.main_region_x,
+                layout.body_y + menu_height,
+                layout.main_region_width,
+                ImMax(
+                    0.0f,
+                    layout.body_h - menu_height),
+                touches_left,
+                false,
+                true,
+                true);
+
+        const ImVec2 main_region_padding =
+            computeMainRegionPadding(style);
+
+        ImGui::SetCursorPos(
+            ImVec2(
+                main_region_rect.x,
+                main_region_rect.y));
+
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_WindowPadding,
+            main_region_padding);
+
+        if (ImGui::BeginChild(
+                u8"##imguix_main_region",
+                ImVec2(
+                    main_region_rect.width,
+                    main_region_rect.height),
+                ImGuiChildFlags_AlwaysUseWindowPadding,
+                ImGuiWindowFlags_NoScrollbar |
+                    ImGuiWindowFlags_NoDecoration |
+                    ImGuiWindowFlags_NoBackground)) {
+            drawControllersContent();
+        }
+
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
     }
 
 } // namespace ImGuiX::Windows

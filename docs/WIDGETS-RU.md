@@ -41,6 +41,20 @@ bool enabled = false;
 ImGuiX::Widgets::ToggleButton("demo.toggle", &enabled);
 ```
 
+### NavigationButton
+Компактная скруглённая кнопка навигации с независимыми состояниями выбора,
+наведения и нажатия. В обычном состоянии фон прозрачен, а цвета берутся из
+активной темы (`NavHighlight`, `HeaderHovered` и `HeaderActive`).
+```cpp
+ImGuiX::Widgets::NavigationButtonConfig nav_cfg;
+nav_cfg.size = ImVec2(0.0f, 32.0f);
+nav_cfg.frame_padding = ImVec2(8.0f, 4.0f);
+nav_cfg.rounding = 6.0f;
+if (ImGuiX::Widgets::NavigationButton("System##navigation.system", selected, nav_cfg)) {
+    // открыть раздел
+}
+```
+
 ### IconButtonCentered
 Кнопка, центрирующая иконку или текст внутри рамки.
 ```cpp
