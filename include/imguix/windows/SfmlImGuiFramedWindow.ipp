@@ -129,6 +129,7 @@ namespace ImGuiX::Windows {
             ImGuiWindowFlags_NoResize |
             ImGuiWindowFlags_NoSavedSettings |
             ImGuiWindowFlags_NoScrollbar |
+            ImGuiWindowFlags_NoScrollWithMouse |
             ImGuiWindowFlags_NoBringToFrontOnFocus;
 
         const bool transparent_host_background =
@@ -149,10 +150,14 @@ namespace ImGuiX::Windows {
         const float host_rounding = m_config.frame_corner_radius > 0
             ? static_cast<float>(m_config.frame_corner_radius)
             : 0.0f;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, host_rounding);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
         ImGui::Begin(u8"##imguix_framed_window", nullptr, flags);
-        ImGui::PopStyleVar(2);
+
+        ImGui::PopStyleVar(3);
 
         if (transparent_host_background) {
             ImGui::PopStyleColor(2);
@@ -344,7 +349,7 @@ namespace ImGuiX::Windows {
 
                 // Native resize bands may overlap the custom title chrome. Give
                 // the actual controls precedence so the top edge cannot swallow
-                // clicks on the full-height NavigationStrip or system buttons.
+                // clicks on navigation controls or system buttons.
                 // ImGui item rectangles and the interactive rect are client-space,
                 // matching `pt` after ScreenToClient().
                 const bool in_title_control =

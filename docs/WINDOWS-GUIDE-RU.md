@@ -244,11 +244,13 @@ cmake --build external/ImGuiX/build-mingw --target corner_icon_area_demo_v3 --pa
 | `corner_icon_mode_icon_size` | Размер corner icon | `<0`: auto-fit с frame-aware компенсацией. |
 | `corner_icon_mode_gap` | Gap между icon area и title/side | `<0`: runtime `style.WindowPadding.x`. |
 | `corner_menu_bar_placement` | `MainRegion`, `InTitleBar`, `BelowTitleBar` | Имеет смысл только при `HasMenuBar`. |
-| `title_bar_menu_presentation` | `Menu` или `NavigationStrip` | Работает с `InTitleBar`; strip убирает ведущий inset, при пустом title начинается от края title-region, использует theme navigation surfaces и оставляет внутренний стык title/body квадратным. |
+| `title_bar_menu_presentation` | `Menu` или `NavigationStrip` | Работает с `InTitleBar`; `NavigationStrip` рисует компактные скруглённые кнопки с внутренним отступом и цветами темы, не меняя геометрию title/side chrome. |
 
-`NavigationStrip` делает квадратным только внутренний стык title surface с
-icon/body. Независимые скругления side-panel и main-content не переопределяются:
-для этих поверхностей действует их собственная политика углов.
+`NavigationStrip` — это политика отображения пунктов меню. Каждая кнопка
+является отдельной скруглённой поверхностью внутри title-region; ни одна
+navigation surface не владеет рамкой title/side и не меняет её геометрию.
+Независимые скругления side-panel и main-content сохраняют собственную
+политику углов.
 
 ### Подписи кнопок и clear color
 

@@ -18,11 +18,10 @@ namespace ImGuiX::Windows {
     /// \brief Presentation policy for a menu rendered inside the title bar.
     enum class TitleBarMenuPresentation {
         Menu,           ///< Preserve normal menu-bar insets and transparent menu header surfaces.
-        NavigationStrip ///< Use a flush title-bar strip with theme navigation surfaces;
-                         ///< keep the internal title/body seam square.
+        NavigationStrip ///< Use inset rounded navigation controls with theme surfaces.
     };
 
-    /// \brief Corner-mode style for title/side rounding mask.
+    /// \brief Corner-mode style for title/side rounding policy.
     enum class CornerRoundingStyle {
         Legacy,                  ///< Preserve existing rounding flags.
         NoTopLeftOnTitleAndSide  ///< Remove top-left rounding for title bar and side panel.

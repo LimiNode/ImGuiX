@@ -26,10 +26,10 @@
 /// - corner-icon layout supports menu placement modes via
 ///   \ref ImGuiFramedWindowConfig::corner_menu_bar_placement:
 ///   `MainRegion` (backward-compatible), `InTitleBar`, `BelowTitleBar`.
-/// - `InTitleBar` makes menu-item interaction and highlight surfaces occupy the
-///   complete title-bar height, matching the system-control chrome.
-/// - `title_bar_menu_presentation` selects normal menu presentation or a flush
-///   navigation strip when using `InTitleBar`.
+/// - `InTitleBar` renders the menu inside the title region while preserving the
+///   title chrome geometry and native control area.
+/// - `title_bar_menu_presentation` selects normal menu presentation or inset
+///   rounded navigation controls when using `InTitleBar`.
 ///
 /// Minimal customization example:
 /// \code{.cpp}
@@ -189,9 +189,9 @@ namespace ImGuiX::Windows {
         bool m_has_corner_icon_texture = false; ///< Whether m_corner_icon_texture is ready for drawing.
         bool applyCommonWindowSetup();
 #       ifdef _WIN32
-        RECT m_minimize_btn_rect = {0}; ///< Rectangle of the minimize button.
-        RECT m_maximize_btn_rect = {0}; ///< Rectangle of the maximize button.
-        RECT m_close_btn_rect = {0};    ///< Rectangle of the close button.
+        RECT m_minimize_btn_rect{}; ///< Rectangle of the minimize button.
+        RECT m_maximize_btn_rect{}; ///< Rectangle of the maximize button.
+        RECT m_close_btn_rect{};    ///< Rectangle of the close button.
         bool m_in_manual_sizing = false; ///< True while resizing manually.
         void setupWindowEffects(HWND hwnd);
         void applyRoundedRegion(HWND hwnd, int width, int height, int radius);
@@ -213,7 +213,8 @@ namespace ImGuiX::Windows {
         virtual bool hasTitleBarContent() const;
 
         /// \brief Draw content inside optional left side panel.
-        /// \details Called only when `m_config.side_panel_width > 0`.
+        /// \details In corner mode, `side_panel_width <= 0` uses the automatic
+        ///          corner-panel width rather than disabling the panel.
         virtual void drawSidePanel() {}
 
         /// \brief Draw content inside optional top-left corner icon slot.
@@ -241,9 +242,8 @@ namespace ImGuiX::Windows {
         float drawCornerBelowTitleMenuRegion(float x, float y, float width, float menu_bar_height);
 
         /// \brief Draw menu bar inside corner title bar after title text.
-        /// \param menu_bar_height Menu bar height in pixels.
         /// \param style Active Dear ImGui style reference.
-        void drawCornerInTitleMenuRegion(float menu_bar_height, const ImGuiStyle& style);
+        void drawCornerInTitleMenuRegion(const ImGuiStyle& style);
 
         /// \brief Draw classic framed-window layout.
         /// \param menu_bar_height Menu bar height in pixels.
@@ -380,6 +380,53 @@ namespace ImGuiX::Windows {
         /// If multiple are set in release builds, falls back to ImGui style.
         /// \return Resolved control-buttons style.
         ControlButtonsStyle resolveControlButtonsStyle() const;
+
+        struct CornerLayoutState {
+            float body_y = 0.0f;
+            float body_h = 0.0f;
+            float body_width = 0.0f;
+
+            float corner_gap = 0.0f;
+            float icon_surface_w = 0.0f;
+
+            float side_panel_width = 0.0f;
+            float side_h = 0.0f;
+
+            float main_region_x = 0.0f;
+            float main_region_width = 0.0f;
+
+            float title_w = 0.0f;
+            float stroke = 0.0f;
+            float rounding = 0.0f;
+
+            bool has_side_panel = false;
+
+            bool menu_in_title = false;
+            bool menu_below_title = false;
+            bool menu_main_region = false;
+
+            ImDrawFlags title_rounding_flags = ImDrawFlags_None;
+            ImDrawFlags side_rounding_flags = ImDrawFlags_None;
+        };
+
+        CornerLayoutState computeCornerLayoutState(
+            const ImGuiStyle& style) const;
+
+        void drawCornerIconRegion(
+            const CornerLayoutState& layout);
+
+        void drawCornerTitleRegion(
+            const CornerLayoutState& layout,
+            const ImGuiStyle& style);
+
+        void drawCornerSidePanelRegion(
+            const CornerLayoutState& layout,
+            const ImGuiStyle& style);
+
+        void drawCornerMainRegion(
+            const CornerLayoutState& layout,
+            const ImGuiStyle& style,
+            float menu_bar_height);
     };
 
 } // namespace ImGuiX::Windows

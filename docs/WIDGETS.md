@@ -42,6 +42,21 @@ bool enabled = false;
 ImGuiX::Widgets::ToggleButton("demo.toggle", &enabled);
 ```
 
+### NavigationButton
+Compact rounded navigation control with independent selected, hover and active
+surfaces. Idle controls remain transparent; selected and interaction colors are
+resolved from the active theme (`NavHighlight`, `HeaderHovered` and
+`HeaderActive`).
+```cpp
+ImGuiX::Widgets::NavigationButtonConfig nav_cfg;
+nav_cfg.size = ImVec2(0.0f, 32.0f);
+nav_cfg.frame_padding = ImVec2(8.0f, 4.0f);
+nav_cfg.rounding = 6.0f;
+if (ImGuiX::Widgets::NavigationButton("System##navigation.system", selected, nav_cfg)) {
+    // activate the destination
+}
+```
+
 ### IconButtonCentered
 Button that centers an icon or text inside its frame.
 ```cpp
