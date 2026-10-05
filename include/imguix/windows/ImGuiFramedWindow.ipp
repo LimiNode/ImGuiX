@@ -344,6 +344,10 @@ namespace ImGuiX::Windows {
                 style.WindowPadding.y));
 
         const auto draw_menu_child = [&]() {
+            const ImGuiX::Extensions::ScopedStyleColor menu_bar_bg(
+                ImGuiCol_MenuBarBg,
+                ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+
             if (ImGui::BeginChild(
                     u8"##imguix_title_menu_bar",
                     ImVec2(title_menu_width, title_menu_height),
@@ -353,10 +357,6 @@ namespace ImGuiX::Windows {
                         ImGuiWindowFlags_NoDecoration |
                         ImGuiWindowFlags_NoBackground)) {
                 const ImVec2 menu_window_pos = ImGui::GetWindowPos();
-
-                const ImGuiX::Extensions::ScopedStyleColor menu_bar_bg(
-                    ImGuiCol_MenuBarBg,
-                    ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
                 if (navigation_strip) {
                     drawMenuBar();
@@ -396,6 +396,7 @@ namespace ImGuiX::Windows {
             ImGui::EndChild();
         };
 
+        /*
         if (navigation_strip) {
             const ImGuiX::Extensions::ScopedStyleVar item_spacing(
                 ImGuiStyleVar_ItemSpacing,
@@ -408,6 +409,31 @@ namespace ImGuiX::Windows {
             const ImGuiX::Extensions::ScopedStyleVar item_spacing(
                 ImGuiStyleVar_ItemSpacing,
                 ImVec2(style.ItemSpacing.x, title_menu_frame_padding_y * 2.0f));
+            draw_menu_child();
+        }
+        */
+
+        const ImGuiX::Extensions::ScopedStyleVar menu_bar_frame_padding(
+                ImGuiStyleVar_FramePadding,
+                ImVec2(
+                    style.FramePadding.x,
+                    title_menu_frame_padding_y));
+
+        if (navigation_strip) {
+            const ImGuiX::Extensions::ScopedStyleVar item_spacing(
+                ImGuiStyleVar_ItemSpacing,
+                ImVec2(
+                    style.ItemSpacing.x,
+                    style.ItemSpacing.y));
+
+            draw_menu_child();
+        } else {
+            const ImGuiX::Extensions::ScopedStyleVar item_spacing(
+                ImGuiStyleVar_ItemSpacing,
+                ImVec2(
+                    style.ItemSpacing.x,
+                    title_menu_frame_padding_y * 2.0f));
+
             draw_menu_child();
         }
     }
