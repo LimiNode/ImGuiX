@@ -48,7 +48,7 @@
 #define IMGUIX_ICON_CLOSE           u8"\uE5CD"
 
 /// \brief Clipboard paste icon.
-#define IMGUIX_ICON_PASTE           u8"\uE2C8"
+#define IMGUIX_ICON_PASTE           u8"\uE14F"
 
 /// \brief Filter list icon.
 #define IMGUIX_ICON_FILTER_LIST     u8"\uE152"

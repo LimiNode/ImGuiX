@@ -7,6 +7,7 @@ Files:
 - `imguix-smoke-build.md` - Known-good commands to configure and rebuild smoke examples with MinGW.
 - `imguix-fonts-i18n-playbook.md` - Quick operational checklist for documenting and validating fonts + i18n behavior.
 - `imguix-windowing-playbook.md` - Practical checklist for `WindowInstance` / `ImGuiFramedWindow` changes and docs sync.
+- `imguix-layout-playbook.md` - Cursor, wrapping, grouping, and toolbar layout invariants for Dear ImGui widgets.
 
 When to use `imguix-fonts-i18n-playbook.md`:
 
@@ -31,6 +32,12 @@ Expected outputs from `imguix-windowing-playbook.md`:
 - Consistent behavior statements for classic/corner layouts and config semantics.
 - Backend-aware notes (SFML vs GLFW/SDL2) without over-generalization.
 - At least one representative smoke build check tied to the changed windowing scenario.
+
+When to use `imguix-layout-playbook.md`:
+
+- You change widget toolbars, row composition, tables, or localized layout wrapping.
+- You add or remove `SameLine()` / `NewLine()` calls.
+- You need to diagnose unexplained vertical gaps or controls overflowing a narrow panel.
 
 Toolchain policy:
 

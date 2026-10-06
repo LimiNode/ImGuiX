@@ -21,6 +21,7 @@ namespace ImGuiX::Widgets {
 
     /// \brief Display-ready log row consumed by LogViewer.
     struct LogViewerEntry final {
+        /// Stable identifier unique within the current LogViewer data set.
         std::uint64_t id{0};
         int level_rank{0};
         std::string timestamp;
@@ -89,6 +90,13 @@ namespace ImGuiX::Widgets {
         float toolbar_padding_y{-1.0f};
         float level_combo_width{110.0f};
 
+        /// Initial timestamp column width. Non-positive values auto-size from
+        /// the localized header and currently visible entries.
+        float timestamp_column_width{0.0f};
+        /// Initial level column width. Non-positive values auto-size from the
+        /// localized header and currently visible entries.
+        float level_column_width{0.0f};
+
         const LogViewerLevel* levels{nullptr};
         std::size_t level_count{0};
         LogViewerLabels labels{};
@@ -107,6 +115,13 @@ namespace ImGuiX::Widgets {
         bool clear_selection_after_copy{true};
         std::function<std::string(std::size_t)> format_selected_count;
         std::function<std::string(const LogViewerEntry&)> format_clipboard_row;
+
+        LogViewerConfig() {
+            // LogViewer owns the toolbar inset and keeps the table close to
+            // the panel border; inheriting WindowPadding here would make a
+            // standalone viewer visually different from the reference UI.
+            panel.padding = ImVec2(0.0f, 0.0f);
+        }
     };
 
     /// \brief Render a rounded, filterable, selectable log table.

@@ -41,17 +41,27 @@ namespace ImGuiX::Widgets {
         const std::size_t entry_count,
         LogViewerState& state,
         const LogViewerConfig& config) {
+        IM_ASSERT(
+            entries != nullptr ||
+            entry_count == 0U);
+        if (entries == nullptr && entry_count != 0U) {
+            return false;
+        }
+
         const char* widget_id = id != nullptr ? id : "##log_viewer";
         ImGui::PushID(widget_id);
 
-        const auto entry_at = [entries, entry_count](const std::size_t index)
+        const auto entry_at = [entries](const std::size_t index)
             -> const LogViewerEntry& { return entries[index]; };
 
         const auto prune_state = [&]() {
             std::unordered_set<std::uint64_t> existing_ids;
             existing_ids.reserve(entry_count);
             for (std::size_t index = 0; index < entry_count; ++index) {
-                existing_ids.insert(entry_at(index).id);
+                const auto insertion = existing_ids.insert(entry_at(index).id);
+                IM_ASSERT(
+                    insertion.second &&
+                    "LogViewerEntry::id must be unique within a LogViewer data set");
             }
 
             for (auto selected = state.selected_ids.begin();
@@ -98,6 +108,7 @@ namespace ImGuiX::Widgets {
 
         prune_state();
 
+        bool viewer_focused = false;
         const bool panel_open = BeginRoundedPanel("##panel", config.size, config.panel);
         if (panel_open) {
             {
@@ -225,23 +236,23 @@ namespace ImGuiX::Widgets {
                     if (!action_buttons.empty() &&
                         same_line_available >= action_buttons_width) {
                         ImGui::SameLine();
-                    } else if (!action_buttons.empty()) {
-                        // Start a wrapped action row explicitly. Without this,
-                        // the first button would be placed after the filter
-                        // group even when it cannot fit in the remaining line.
-                        // Subsequent buttons use the normal item spacing while
-                        // wrapping independently below.
-                        ImGui::NewLine();
                     }
 
                     bool first_action = true;
                     for (const ActionButton& action : action_buttons) {
                         if (!first_action) {
-                            if (ImGui::GetContentRegionAvail().x >=
-                                button_width(action.label) + toolbar_style.ItemSpacing.x) {
+                            const float next_button_width =
+                                button_width(action.label);
+
+                            const float current_line_available =
+                                std::max(
+                                    0.0f,
+                                    content_right -
+                                        ImGui::GetItemRectMax().x -
+                                        toolbar_style.ItemSpacing.x);
+
+                            if (current_line_available >= next_button_width) {
                                 ImGui::SameLine();
-                            } else {
-                                ImGui::NewLine();
                             }
                         }
                         first_action = false;
@@ -277,13 +288,6 @@ namespace ImGuiX::Widgets {
                     }
 
                     if (!state.selected_ids.empty()) {
-                        // Selection actions are a distinct compact row below
-                        // the always-available toolbar actions. This keeps
-                        // the selected-count/status text from being appended
-                        // to the last action button on wide layouts.
-                        if (!action_buttons.empty()) {
-                            ImGui::NewLine();
-                        }
                         ImGui::AlignTextToFramePadding();
                         std::string selected_label;
                         if (config.format_selected_count) {
@@ -332,6 +336,14 @@ namespace ImGuiX::Widgets {
                 ImGui::EndChild();
             }
 
+            std::vector<std::size_t> visible_indices;
+            visible_indices.reserve(entry_count);
+            for (std::size_t index = 0; index < entry_count; ++index) {
+                if (entry_at(index).level_rank >= state.min_level_rank) {
+                    visible_indices.push_back(index);
+                }
+            }
+
             const ImGuiStyle& panel_style = ImGui::GetStyle();
             const float table_edge_inset = std::max(1.0f, panel_style.ChildBorderSize);
             const ImVec2 table_available = ImGui::GetContentRegionAvail();
@@ -352,13 +364,27 @@ namespace ImGuiX::Widgets {
                 const ImGuiStyle& style = ImGui::GetStyle();
                 const char* timestamp_header = non_null_label(config.labels.timestamp, "Timestamp");
                 const char* level_header = non_null_label(config.labels.level, "Level");
+                float timestamp_content_width =
+                    ImGui::CalcTextSize(timestamp_header).x;
+                float level_content_width =
+                    ImGui::CalcTextSize(level_header).x;
+                for (const std::size_t index : visible_indices) {
+                    const LogViewerEntry& entry = entry_at(index);
+                    timestamp_content_width = std::max(
+                        timestamp_content_width,
+                        ImGui::CalcTextSize(entry.timestamp.c_str()).x);
+                    level_content_width = std::max(
+                        level_content_width,
+                        ImGui::CalcTextSize(entry.level.c_str()).x);
+                }
                 const float timestamp_width =
-                    std::max(ImGui::CalcTextSize("0000-00-00T00:00:00.000Z").x,
-                             ImGui::CalcTextSize(timestamp_header).x) +
-                    style.CellPadding.x * 2.0f;
+                    config.timestamp_column_width > 0.0f
+                        ? config.timestamp_column_width
+                        : timestamp_content_width + style.CellPadding.x * 2.0f;
                 const float level_width =
-                    std::max(ImGui::CalcTextSize("FATAL").x, ImGui::CalcTextSize(level_header).x) +
-                    style.CellPadding.x * 2.0f;
+                    config.level_column_width > 0.0f
+                        ? config.level_column_width
+                        : level_content_width + style.CellPadding.x * 2.0f;
                 ImGui::TableSetupColumn(
                     timestamp_header, ImGuiTableColumnFlags_WidthFixed, timestamp_width,
                     ImGui::GetID("##timestamp_column"));
@@ -373,14 +399,6 @@ namespace ImGuiX::Widgets {
                 ImGui::TableSetColumnIndex(2);
                 const float message_width = std::max(1.0f, ImGui::GetContentRegionAvail().x);
                 ImGui::TableSetColumnIndex(0);
-
-                std::vector<std::size_t> visible_indices;
-                visible_indices.reserve(entry_count);
-                for (std::size_t index = 0; index < entry_count; ++index) {
-                    if (entry_at(index).level_rank >= state.min_level_rank) {
-                        visible_indices.push_back(index);
-                    }
-                }
 
                 const ImGuiIO& io = ImGui::GetIO();
                 const ImVec2 table_window_pos = ImGui::GetWindowPos();
@@ -527,10 +545,14 @@ namespace ImGuiX::Widgets {
                 }
                 ImGui::EndTable();
             }
+
+            viewer_focused =
+                ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
         }
         EndRoundedPanel();
 
-        if (!state.selected_ids.empty() &&
+        if (viewer_focused &&
+            !state.selected_ids.empty() &&
             ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiKey_C)) {
             std::string output;
             for (std::size_t index = 0; index < entry_count; ++index) {
