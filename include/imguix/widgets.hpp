@@ -12,6 +12,8 @@
 
 #include <imguix/widgets/containers/rounded_panel.hpp>
 
+#include <imguix/widgets/log/log_viewer.hpp>
+
 #include <imguix/widgets/controls/circle_button.hpp>
 #include <imguix/widgets/controls/icon_button.hpp>
 #include <imguix/widgets/controls/icon_combo.hpp>

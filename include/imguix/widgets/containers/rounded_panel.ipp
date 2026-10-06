@@ -1,5 +1,6 @@
 #include <imguix/config/build.hpp>
 
+#include <algorithm>
 #include <vector>
 
 namespace ImGuiX::Widgets {
@@ -40,14 +41,14 @@ namespace ImGuiX::Widgets {
                 const ImVec2& min,
                 const ImVec2& max) {
             const float width =
-                ImMax(0.0f, max.x - min.x);
+                std::max(0.0f, max.x - min.x);
 
             const float height =
-                ImMax(0.0f, max.y - min.y);
+                std::max(0.0f, max.y - min.y);
 
-            return ImMin(
-                ImMax(0.0f, rounding),
-                ImMin(width, height) * 0.5f);
+            return std::min(
+                std::max(0.0f, rounding),
+                std::min(width, height) * 0.5f);
         }
 
         void drawCornerCover(
@@ -62,6 +63,7 @@ namespace ImGuiX::Widgets {
             }
 
             draw_list->PathClear();
+            constexpr float pi = 3.14159265358979323846f;
 
             // Filled paths use clockwise winding. Each path describes only
             // the part of a corner square lying outside the rounded panel.
@@ -78,8 +80,8 @@ namespace ImGuiX::Widgets {
                     draw_list->PathArcTo(
                         center,
                         radius,
-                        IM_PI * 1.5f,
-                        IM_PI,
+                        pi * 1.5f,
+                        pi,
                         0);
                     break;
                 }
@@ -97,7 +99,7 @@ namespace ImGuiX::Widgets {
                         center,
                         radius,
                         0.0f,
-                        -IM_PI * 0.5f,
+                        -pi * 0.5f,
                         0);
                     break;
                 }
@@ -114,7 +116,7 @@ namespace ImGuiX::Widgets {
                     draw_list->PathArcTo(
                         center,
                         radius,
-                        IM_PI * 0.5f,
+                        pi * 0.5f,
                         0.0f,
                         0);
                     break;
@@ -132,8 +134,8 @@ namespace ImGuiX::Widgets {
                     draw_list->PathArcTo(
                         center,
                         radius,
-                        IM_PI,
-                        IM_PI * 0.5f,
+                        pi,
+                        pi * 0.5f,
                         0);
                     break;
                 }
@@ -211,7 +213,7 @@ namespace ImGuiX::Widgets {
                 border_min,
                 border_max,
                 state.border_color,
-                ImMax(
+                std::max(
                     0.0f,
                     state.rounding - inset),
                 ImDrawFlags_RoundCornersAll,
@@ -259,10 +261,10 @@ namespace ImGuiX::Widgets {
         const ImVec2 panel_size(
             size.x > 0.0f
                 ? size.x
-                : ImMax(0.0f, available.x),
+                : std::max(0.0f, available.x),
             size.y > 0.0f
                 ? size.y
-                : ImMax(0.0f, available.y));
+                : std::max(0.0f, available.y));
 
         const ImVec2 panel_min =
             ImGui::GetCursorScreenPos();
@@ -283,7 +285,7 @@ namespace ImGuiX::Widgets {
                 panel_max);
 
         const float border_thickness =
-            ImMax(
+            std::max(
                 0.0f,
                 config.border_thickness >= 0.0f
                     ? config.border_thickness
@@ -365,7 +367,7 @@ namespace ImGuiX::Widgets {
             // underneath its straight sections. Rounded corners are restored
             // separately in EndRoundedPanel().
             const float inset =
-                ImMax(1.0f, border_thickness);
+                std::max(1.0f, border_thickness);
 
             const ImVec2 clip_min(
                 panel_min.x + inset,
@@ -419,7 +421,7 @@ namespace ImGuiX::Widgets {
         if (state.clip_mode ==
             RoundedPanelClipMode::CoverCorners) {
             const float content_inset =
-                ImMax(
+                std::max(
                     1.0f,
                     state.border_thickness);
 
@@ -434,7 +436,7 @@ namespace ImGuiX::Widgets {
             if (inner_max.x > inner_min.x &&
                 inner_max.y > inner_min.y) {
                 const float inner_rounding =
-                    ImMax(
+                    std::max(
                         0.0f,
                         state.rounding -
                             content_inset);
