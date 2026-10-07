@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <string>
 #include <vector>
 #include <imguix/config/build.hpp>
@@ -221,14 +222,15 @@ namespace ImGuiX::Widgets {
             BeginIconCombo(cfg.label ? cfg.label : u8"Offset", preview.c_str(), cfg.icon_text) :
             ImGui::BeginCombo(cfg.label ? cfg.label : u8"Offset", preview.c_str());
         if (open) {
-            if (cfg.show_desc && cfg.desc) ImGui::TextUnformatted(cfg.desc);
-
             // Timezone combo
             if (cfg.show_tz_list && !tzlist.empty()) {
                 const char* cur = tzlist[tz_index_io].label;
+                // Keep labels above their controls so localized text does not
+                // widen the popup by extending the same line to the right.
+                ImGui::TextUnformatted(
+                    cfg.timezone_label ? cfg.timezone_label : u8"Timezone");
                 ImGui::SetNextItemWidth(tz_field_width);
-                if (ImGui::BeginCombo(
-                        cfg.timezone_label ? cfg.timezone_label : u8"Timezone", cur)) {
+                if (ImGui::BeginCombo(u8"##timezone", cur)) {
                     for (int i = 0; i < (int)tzlist.size(); ++i) {
                         bool sel = (i == tz_index_io);
                         if (ImGui::Selectable(tzlist[i].label, sel)) { tz_index_io = i; changed = true; }
@@ -252,6 +254,7 @@ namespace ImGuiX::Widgets {
 
             // 1) Direct string edit with sign parsing
             {
+                if (cfg.show_desc && cfg.desc) ImGui::TextUnformatted(cfg.desc);
                 char buf[32];
                 std::snprintf(buf, sizeof(buf), u8"%s", ImGuiX::Utils::format_signed_hms(offset_sec).c_str());
                 ImGui::SetNextItemWidth(combo_width);
@@ -261,9 +264,11 @@ namespace ImGuiX::Widgets {
                         if (v != offset_sec) { offset_sec = v; changed = true; }
                     }
                 }
-                ImGui::SameLine();
-                ImGui::TextUnformatted(
-                    cfg.value_format ? cfg.value_format : u8"±HH:MM[:SS]");
+                if (cfg.value_format &&
+                    (cfg.desc == nullptr || std::strcmp(cfg.value_format, cfg.desc) != 0) &&
+                    ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("%s", cfg.value_format);
+                }
             }
 
             // 2) H/M/S steppers edit magnitude + allow crossing zero to change sign
