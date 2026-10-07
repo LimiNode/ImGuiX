@@ -222,6 +222,13 @@ namespace ImGuiX::Widgets {
             BeginIconCombo(cfg.label ? cfg.label : u8"Offset", preview.c_str(), cfg.icon_text) :
             ImGui::BeginCombo(cfg.label ? cfg.label : u8"Offset", preview.c_str());
         if (open) {
+            const ImGuiStyle& style = ImGui::GetStyle();
+            const ImVec2 popup_spacing(
+                cfg.popup_item_spacing.x >= 0.0f ? cfg.popup_item_spacing.x : style.ItemSpacing.x,
+                cfg.popup_item_spacing.y >= 0.0f ? cfg.popup_item_spacing.y : style.ItemSpacing.y);
+            const ImGuiX::Extensions::ScopedStyleVar popup_item_spacing_scope(
+                ImGuiStyleVar_ItemSpacing, popup_spacing);
+
             // Timezone combo
             if (cfg.show_tz_list && !tzlist.empty()) {
                 const char* cur = tzlist[tz_index_io].label;

@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include <imguix/extensions/scoped_style.hpp>
 #include <imguix/widgets/input/arrow_stepper.hpp>
 #include <imguix/utils/time_utils.hpp>  // ImGuiX::Utils::format_hms, etc.
 #include <imguix/extensions/sizing.hpp> // ImGuiX::Extensions::CalcTimeComboWidth(), etc.
@@ -63,6 +64,7 @@ namespace ImGuiX::Widgets {
         const char* dst_suffix    = u8" (DST observed)"; ///< Suffix shown for DST-aware zones.
         const char* value_format  = u8"±HH:MM[:SS]"; ///< Tooltip format hint for manual editing.
         const char* gmt_label     = u8"GMT"; ///< Prefix for the effective UTC offset.
+        ImVec2 popup_item_spacing{-1.0f, -1.0f}; ///< Popup spacing; negative components inherit style.
     };
 
     // ---------- widgets ----------------------------------------------------------
@@ -117,12 +119,19 @@ namespace ImGuiX::Widgets {
         static TimeOffsetPickerConfig to_cfg;
         bool t_changed = TimePicker("time", seconds, tp_cfg);
         ImGui::SameLine();
+        const ImVec2 theme_item_spacing = ImGui::GetStyle().ItemSpacing;
+        TimeOffsetPickerConfig offset_cfg = to_cfg;
+        offset_cfg.popup_item_spacing = theme_item_spacing;
+        // Exercise popup-local spacing while the caller uses a looser page layout.
+        const ImGuiX::Extensions::ScopedStyleVar caller_spacing(
+            ImGuiStyleVar_ItemSpacing,
+            ImVec2(theme_item_spacing.x, 16.0f));
         bool tz_changed = TimeOffsetPicker(
             "offset",
             tz_offset_sec,
             has_dst_out,
             tz_index_io,
-            to_cfg
+            offset_cfg
         );
         if (t_changed || tz_changed) {
             // handle new time/offset
