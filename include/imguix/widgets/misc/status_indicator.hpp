@@ -21,6 +21,8 @@ namespace ImGuiX::Widgets {
     /// \param indicator_color Indicator color in ImGui float format.
     /// \param config Indicator geometry and optical correction.
     /// \note Uses one ImGui group so callers can compose it with SameLine(), hover, and tooltips.
+    ///       The group reserves enough vertical space for the configured dot, including
+    ///       optical_offset_y, so the rendered indicator remains inside its item bounds.
     void StatusIndicator(
         const char* text,
         const ImVec4& indicator_color,
@@ -43,7 +45,7 @@ namespace ImGuiX::Widgets {
         StatusIndicator("Error", danger);
 
         StatusIndicator(
-            "A long status label demonstrates group bounds and wrapping behavior", success);
+            "A long status label demonstrates group bounds", success);
 
         StatusIndicatorConfig compact;
         compact.radius = 3.0f;

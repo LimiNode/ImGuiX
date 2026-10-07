@@ -17,16 +17,29 @@ namespace ImGuiX::Widgets {
 
         const ImVec2 origin = ImGui::GetCursorScreenPos();
         const float line_height = ImGui::GetTextLineHeight();
+        const ImVec2 text_size = ImGui::CalcTextSize(label);
+        const float label_height = std::max(line_height, text_size.y);
+        const float required_dot_height =
+            2.0f * (radius + std::abs(config.optical_offset_y));
+        const float row_height = std::max(label_height, required_dot_height);
+        const float label_offset_y = (row_height - label_height) * 0.5f;
         const float center_y = std::floor(
-            origin.y + line_height * 0.5f + config.optical_offset_y + 0.5f);
+            origin.y + row_height * 0.5f + config.optical_offset_y + 0.5f);
 
         ImGui::GetWindowDrawList()->AddCircleFilled(
             ImVec2(origin.x + radius, center_y), radius,
             ImGui::GetColorU32(indicator_color));
 
         ImGui::SetCursorScreenPos(
-            ImVec2(origin.x + radius * 2.0f + spacing, origin.y));
+            ImVec2(
+                origin.x + radius * 2.0f + spacing,
+                origin.y + label_offset_y));
         ImGui::TextUnformatted(label);
+
+        // EndGroup() derives its item rectangle from the cursor state. Extend
+        // it to include the reserved dot height without adding another item.
+        const ImVec2 cursor = ImGui::GetCursorScreenPos();
+        ImGui::SetCursorScreenPos(ImVec2(cursor.x, origin.y + row_height));
 
         ImGui::EndGroup();
     }
