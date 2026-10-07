@@ -38,6 +38,14 @@ Do not use `else { ImGui::NewLine(); }` in this pattern.
 - Compute available width relative to the actual previous item/group bounds.
   Keep `SameLine()` conditional so localized labels can wrap naturally.
 - Do not reserve an empty selection row when there is no selection.
+- Manual cursor positioning, calculated dimensions, conditional `SameLine()`,
+  style scopes spanning `BeginChild()`/`EndChild()`, and draw-list geometry
+  should have a short intent comment when the reason is not obvious from the
+  API. Prefer extracting named helpers over growing a monolithic draw method.
+- A container that configures a child window may scope its metrics only around
+  `BeginChild()` when Dear ImGui snapshots them into the child. In particular,
+  `ContentSurface` must restore its padding/rounding before descendants draw so
+  popups and nested children use the normal theme metrics.
 
 ## Verification checklist
 

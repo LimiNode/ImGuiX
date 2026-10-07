@@ -183,6 +183,12 @@ fallback after an item that does not fit, because that inserts an extra
 line-height/spacing step and produces a visible gap. Reserve `NewLine()` for
 an intentional additional break or breathing room.
 
+Non-obvious widget code must document intent and invariants rather than repeat
+the syntax it wraps. Add a short comment for manual geometry, calculated
+dimensions, lifetime-sensitive style scopes, draw-list masks, non-owning
+lifetimes, and platform-specific behavior. If a widget needs several long
+comment blocks to explain one operation, extract a named helper first.
+
 ## 4. Data & Contracts
 
 * Event types are C++ structs; no implicit serialization.
@@ -373,6 +379,12 @@ Style lifetime follows when the style is pushed:
   guard restore it afterwards.
 * A style pushed after a successful `Begin*()` belongs to the child contents.
   Destroy that guard before the matching `End*()`.
+
+`ContentSurface` is an intentional exception for its surface metrics: it
+pushes `ChildRounding` and `WindowPadding` only around `BeginChild()`, then
+restores them immediately. Dear ImGui snapshots those values into the child;
+keeping the parent override alive would leak page padding and rounding into
+popups and nested children.
 
 Use `ScopedStyleVar`/`ScopedStyleColor` for application-facing temporary
 overrides. Raw push/pop is reserved for low-level ImGuiX code where the exact

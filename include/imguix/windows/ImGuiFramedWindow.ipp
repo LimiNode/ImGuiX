@@ -224,6 +224,10 @@ namespace ImGuiX::Windows {
         }
     }
 
+    void ImGuiFramedWindow::drawMainRegionContent() {
+        drawControllersContent();
+    }
+
     float ImGuiFramedWindow::drawClassicMainMenuRegion(float x, float y, float width, float menu_bar_height) {
         if (!hasFlag(m_flags, WindowFlags::HasMenuBar)) {
             return 0.0f;
@@ -533,7 +537,7 @@ namespace ImGuiX::Windows {
                     ImGuiWindowFlags_NoDecoration |
                     ImGuiWindowFlags_NoBackground
                 )) {
-                drawControllersContent();
+                drawMainRegionContent();
             }
             ImGui::EndChild();
             ImGui::PopStyleVar();
@@ -616,7 +620,7 @@ namespace ImGuiX::Windows {
                 ImGuiWindowFlags_NoDecoration |
                 ImGuiWindowFlags_NoBackground
             )) {
-            drawControllersContent();
+            drawMainRegionContent();
         }
         ImGui::EndChild();
         ImGui::PopStyleVar();
@@ -1336,7 +1340,7 @@ namespace ImGuiX::Windows {
                 ImGuiWindowFlags_NoScrollbar |
                     ImGuiWindowFlags_NoDecoration |
                     ImGuiWindowFlags_NoBackground)) {
-            drawControllersContent();
+            drawMainRegionContent();
         }
 
         ImGui::EndChild();
