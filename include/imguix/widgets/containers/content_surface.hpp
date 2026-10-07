@@ -21,7 +21,9 @@ namespace ImGuiX::Widgets {
         ImVec2 padding{-1.0f, -1.0f};
 
         ImGuiChildFlags child_flags{ImGuiChildFlags_AlwaysUseWindowPadding};
-        ImGuiWindowFlags window_flags{ImGuiWindowFlags_NoDecoration};
+        // BeginChild already provides child-window semantics.  Keep the
+        // generic surface scrollable unless a caller explicitly opts out.
+        ImGuiWindowFlags window_flags{ImGuiWindowFlags_None};
     };
 
     /// \brief Begin a reusable rounded content surface.
