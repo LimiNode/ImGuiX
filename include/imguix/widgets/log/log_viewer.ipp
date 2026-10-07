@@ -55,54 +55,33 @@ namespace ImGuiX::Widgets {
             -> const LogViewerEntry& { return entries[index]; };
 
         const auto prune_state = [&]() {
-            std::unordered_set<std::uint64_t> existing_ids;
-            existing_ids.reserve(entry_count);
+            std::unordered_set<std::uint64_t> all_ids;
+            std::unordered_set<std::uint64_t> visible_ids;
+            all_ids.reserve(entry_count);
+            visible_ids.reserve(entry_count);
             for (std::size_t index = 0; index < entry_count; ++index) {
-                const auto insertion = existing_ids.insert(entry_at(index).id);
+                const LogViewerEntry& entry = entry_at(index);
+                const auto insertion = all_ids.insert(entry.id);
                 IM_ASSERT(
                     insertion.second &&
                     "LogViewerEntry::id must be unique within a LogViewer data set");
+                if (entry.level_rank < state.min_level_rank) {
+                    continue;
+                }
+                visible_ids.insert(entry.id);
             }
 
             for (auto selected = state.selected_ids.begin();
                  selected != state.selected_ids.end();) {
-                if (existing_ids.count(*selected) == 0U) {
+                if (visible_ids.count(*selected) == 0U) {
                     selected = state.selected_ids.erase(selected);
                 } else {
                     ++selected;
                 }
             }
             if (state.selection_anchor_id.has_value() &&
-                existing_ids.count(*state.selection_anchor_id) == 0U) {
+                visible_ids.count(*state.selection_anchor_id) == 0U) {
                 state.selection_anchor_id.reset();
-            }
-
-            for (auto selected = state.selected_ids.begin();
-                 selected != state.selected_ids.end();) {
-                const LogViewerEntry* found = nullptr;
-                for (std::size_t index = 0; index < entry_count; ++index) {
-                    if (entry_at(index).id == *selected) {
-                        found = &entry_at(index);
-                        break;
-                    }
-                }
-                if (found != nullptr && found->level_rank < state.min_level_rank) {
-                    selected = state.selected_ids.erase(selected);
-                } else {
-                    ++selected;
-                }
-            }
-            if (state.selection_anchor_id.has_value()) {
-                const LogViewerEntry* found = nullptr;
-                for (std::size_t index = 0; index < entry_count; ++index) {
-                    if (entry_at(index).id == *state.selection_anchor_id) {
-                        found = &entry_at(index);
-                        break;
-                    }
-                }
-                if (found != nullptr && found->level_rank < state.min_level_rank) {
-                    state.selection_anchor_id.reset();
-                }
             }
         };
 
