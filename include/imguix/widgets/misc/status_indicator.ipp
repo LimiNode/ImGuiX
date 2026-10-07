@@ -36,10 +36,10 @@ namespace ImGuiX::Widgets {
                 origin.y + label_offset_y));
         ImGui::TextUnformatted(label);
 
-        // EndGroup() derives its item rectangle from the cursor state. Extend
-        // it to include the reserved dot height without adding another item.
-        const ImVec2 cursor = ImGui::GetCursorScreenPos();
-        ImGui::SetCursorScreenPos(ImVec2(cursor.x, origin.y + row_height));
+        // Extend the group bounds to include the lower half of the reserved
+        // row without relying on SetCursorPos() to grow a parent boundary.
+        if (label_offset_y > 0.0f)
+            ImGui::Dummy(ImVec2(0.0f, label_offset_y));
 
         ImGui::EndGroup();
     }
