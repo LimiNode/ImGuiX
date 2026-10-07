@@ -35,6 +35,7 @@
 #include <imguix/widgets/auth/proxy_panel.hpp>
 #include <imguix/widgets/misc/loading_spinner.hpp>
 #include <imguix/widgets/misc/markers.hpp>
+#include <imguix/widgets/misc/status_indicator.hpp>
 #include <imguix/widgets/misc/theme_picker.hpp>
 #include <imguix/widgets/controls/icon_combo.hpp>
 
@@ -420,6 +421,10 @@ private:
 
         if (ImGui::CollapsingHeader("Text Centering")) {
             ImGuiX::Widgets::DemoTextCenter();
+        }
+
+        if (ImGui::CollapsingHeader("Status Indicator")) {
+            ImGuiX::Widgets::DemoStatusIndicator();
         }
 
         if (ImGui::CollapsingHeader("List Editors")) {

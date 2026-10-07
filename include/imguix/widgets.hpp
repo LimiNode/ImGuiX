@@ -33,6 +33,7 @@
 
 #include <imguix/widgets/misc/loading_spinner.hpp>
 #include <imguix/widgets/misc/markers.hpp>
+#include <imguix/widgets/misc/status_indicator.hpp>
 #include <imguix/widgets/misc/text_center.hpp>
 
 #include <imguix/widgets/time/date_picker.hpp>
