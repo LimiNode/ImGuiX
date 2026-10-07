@@ -196,6 +196,10 @@ ImGuiX::Widgets::TimeOffsetPicker("offset", tz_offset, has_dst, tz_index, to_cfg
 `timezone_label`, `value_format`, `dst_suffix` и `gmt_label`. Эти строки
 заимствуются только на время вызова, поэтому локализованный код должен
 сохранять исходные `std::string` до возврата виджета.
+Параметры `popup_item_spacing` и `popup_window_padding` позволяют настроить
+метрики внешнего popup по компонентам; отрицательные компоненты наследуют
+текущий style. Отступ popup применяется только при создании внешнего окна,
+поэтому вложенные контролы сохраняют обычные значения темы.
 
 ### DatePicker
 Выбор календарной даты по Y/M/D или timestamp.

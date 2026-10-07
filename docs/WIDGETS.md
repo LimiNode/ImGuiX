@@ -196,9 +196,13 @@ Selects a signed UTC offset or timezone from a predefined list.
 ImGuiX::Widgets::TimeOffsetPicker("offset", tz_offset, has_dst, tz_index, to_cfg);
 ```
 `TimeOffsetPickerConfig` accepts optional `timezone_label`, `value_format`,
-`dst_suffix`, and `gmt_label` overrides.  These labels are borrowed only for
-the duration of the call, so localized callers must keep their backing strings
-alive until the widget returns.
+`dst_suffix`, and `gmt_label` overrides. `popup_item_spacing` and
+`popup_window_padding` can override the corresponding popup metrics per
+component; negative components inherit the ambient style. Popup padding is
+applied only while the outer popup is created, so nested controls retain the
+normal theme values. These labels are borrowed only for the duration of the
+call, so localized callers must keep their backing strings alive until the
+widget returns.
 
 ### DatePicker
 Calendar date picker operating on Y/M/D or timestamp.
