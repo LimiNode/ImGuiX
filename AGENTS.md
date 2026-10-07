@@ -380,6 +380,12 @@ Style lifetime follows when the style is pushed:
 * A style pushed after a successful `Begin*()` belongs to the child contents.
   Destroy that guard before the matching `End*()`.
 
+`ContentSurface` is an intentional exception for its surface metrics: it
+pushes `ChildRounding` and `WindowPadding` only around `BeginChild()`, then
+restores them immediately. Dear ImGui snapshots those values into the child;
+keeping the parent override alive would leak page padding and rounding into
+popups and nested children.
+
 Use `ScopedStyleVar`/`ScopedStyleColor` for application-facing temporary
 overrides. Raw push/pop is reserved for low-level ImGuiX code where the exact
 window-stack boundary is explicit and covered by a local invariant.

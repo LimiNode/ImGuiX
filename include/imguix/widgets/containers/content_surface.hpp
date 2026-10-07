@@ -29,8 +29,10 @@ namespace ImGuiX::Widgets {
     /// \brief Begin a reusable rounded content surface.
     ///
     /// Negative rounding and padding components inherit the active ImGui
-    /// style.  The call must be paired with EndContentSurface() even when it
-    /// returns false, following the normal BeginChild()/EndChild() contract.
+    /// style.  The metrics are scoped to BeginChild(); descendants inherit the
+    /// normal theme style.  The call must be paired with EndContentSurface()
+    /// even when it returns false, following the normal BeginChild()/EndChild()
+    /// contract.
     /// \param id Child-window identifier.
     /// \param config Surface size, metrics, and child flags.
     /// \return True when the surface contents should be submitted.
