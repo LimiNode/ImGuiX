@@ -218,11 +218,19 @@ namespace ImGuiX::Widgets {
             ImVec2(0, 0),
             ImVec2(FLT_MAX, ImGui::GetTextLineHeightWithSpacing() * 16) // максимум 16 строк
         );
-        bool open = cfg.use_icon_combo ?
-            BeginIconCombo(cfg.label ? cfg.label : u8"Offset", preview.c_str(), cfg.icon_text) :
-            ImGui::BeginCombo(cfg.label ? cfg.label : u8"Offset", preview.c_str());
+        const ImGuiStyle& style = ImGui::GetStyle();
+        const ImVec2 popup_padding(
+            cfg.popup_window_padding.x >= 0.0f ? cfg.popup_window_padding.x : style.WindowPadding.x,
+            cfg.popup_window_padding.y >= 0.0f ? cfg.popup_window_padding.y : style.WindowPadding.y);
+        bool open = false;
+        {
+            const ImGuiX::Extensions::ScopedStyleVar popup_window_padding_scope(
+                ImGuiStyleVar_WindowPadding, popup_padding);
+            open = cfg.use_icon_combo ?
+                BeginIconCombo(cfg.label ? cfg.label : u8"Offset", preview.c_str(), cfg.icon_text) :
+                ImGui::BeginCombo(cfg.label ? cfg.label : u8"Offset", preview.c_str());
+        }
         if (open) {
-            const ImGuiStyle& style = ImGui::GetStyle();
             const ImVec2 popup_spacing(
                 cfg.popup_item_spacing.x >= 0.0f ? cfg.popup_item_spacing.x : style.ItemSpacing.x,
                 cfg.popup_item_spacing.y >= 0.0f ? cfg.popup_item_spacing.y : style.ItemSpacing.y);

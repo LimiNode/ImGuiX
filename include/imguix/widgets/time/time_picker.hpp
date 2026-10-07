@@ -65,6 +65,7 @@ namespace ImGuiX::Widgets {
         const char* value_format  = u8"±HH:MM[:SS]"; ///< Tooltip format hint for manual editing.
         const char* gmt_label     = u8"GMT"; ///< Prefix for the effective UTC offset.
         ImVec2 popup_item_spacing{-1.0f, -1.0f}; ///< Popup spacing; negative components inherit style.
+        ImVec2 popup_window_padding{-1.0f, -1.0f}; ///< Popup padding; negative components inherit style.
     };
 
     // ---------- widgets ----------------------------------------------------------
