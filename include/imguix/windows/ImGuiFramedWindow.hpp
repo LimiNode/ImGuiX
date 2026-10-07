@@ -222,6 +222,12 @@ namespace ImGuiX::Windows {
         /// Default implementation draws icon loaded via setWindowIcon on SFML backend and no-op on others.
         virtual void drawCornerIcon();
 
+        /// \brief Draw content placed inside the framed window's main region.
+        /// \details The default implementation renders all registered controllers.
+        /// Derived windows may wrap that content in an application-shell surface
+        /// while keeping the frame layout independent from page presentation.
+        virtual void drawMainRegionContent();
+
         /// \brief Draws all registered controllers for current frame.
         void drawControllersContent();
 

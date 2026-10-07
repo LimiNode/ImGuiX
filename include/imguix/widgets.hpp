@@ -10,6 +10,7 @@
 #include <imguix/widgets/auth/domain_selector.hpp>
 #include <imguix/widgets/auth/proxy_panel.hpp>
 
+#include <imguix/widgets/containers/content_surface.hpp>
 #include <imguix/widgets/containers/rounded_panel.hpp>
 
 #include <imguix/widgets/log/log_viewer.hpp>
