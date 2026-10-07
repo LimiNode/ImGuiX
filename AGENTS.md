@@ -183,6 +183,12 @@ fallback after an item that does not fit, because that inserts an extra
 line-height/spacing step and produces a visible gap. Reserve `NewLine()` for
 an intentional additional break or breathing room.
 
+Non-obvious widget code must document intent and invariants rather than repeat
+the syntax it wraps. Add a short comment for manual geometry, calculated
+dimensions, lifetime-sensitive style scopes, draw-list masks, non-owning
+lifetimes, and platform-specific behavior. If a widget needs several long
+comment blocks to explain one operation, extract a named helper first.
+
 ## 4. Data & Contracts
 
 * Event types are C++ structs; no implicit serialization.
