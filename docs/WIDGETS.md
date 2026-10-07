@@ -5,6 +5,29 @@ trimmed snippets taken from `examples/smoke/widgets_demo.cpp` unless noted other
 
 For the Russian version, see [WIDGETS-RU.md](WIDGETS-RU.md).
 
+## Containers
+
+### RoundedPanel
+Rounded child container for panels whose content may reach the edges. In the
+default `CoverCorners` mode it redraws the four corner surfaces and the border
+after the child closes, hiding the pixels that rectangular ImGui clipping can
+otherwise leave outside the rounded arcs.
+```cpp
+ImGuiX::Widgets::RoundedPanelConfig panel_cfg;
+panel_cfg.rounding = 13.0f;
+panel_cfg.padding = ImVec2(0.0f, 0.0f);
+panel_cfg.clip_mode = ImGuiX::Widgets::RoundedPanelClipMode::CoverCorners;
+if (ImGuiX::Widgets::BeginRoundedPanel("logs", size, panel_cfg)) {
+    // A table, list or scrollable card can reach the panel edges.
+}
+ImGuiX::Widgets::EndRoundedPanel();
+```
+
+`PaddedContent` is available when the caller keeps content away from the
+rounded corners and does not need the cover pass. This is visual composition,
+not renderer-level stencil clipping; a backend stencil/mask is still needed
+for mathematically exact rounded clipping.
+
 ## Authorization
 
 ### AuthPanel

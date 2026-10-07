@@ -172,6 +172,17 @@ if (ImGui::BeginCombo(cfg.label ? cfg.label : u8"Days", preview.c_str(),
 }
 ```
 
+### Immediate-Mode Layout Invariants
+
+Use `agents/imguix-layout-playbook.md` when changing widget composition. In
+particular, remember that normal Dear ImGui items call `ItemSize()`: after a
+`Button`, `Text`, `Selectable`, or combo, the cursor is already prepared for
+the next line. `SameLine()` is conditional horizontal composition; omitting
+it is the normal wrap behavior. Do not add `NewLine()` as a defensive
+fallback after an item that does not fit, because that inserts an extra
+line-height/spacing step and produces a visible gap. Reserve `NewLine()` for
+an intentional additional break or breathing room.
+
 ## 4. Data & Contracts
 
 * Event types are C++ structs; no implicit serialization.

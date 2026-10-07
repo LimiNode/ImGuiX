@@ -1,7 +1,11 @@
 #include <iostream>
 #include <imguix/core.hpp>
+#include <imguix/widgets/log/log_viewer.hpp>
 #include <random>
 #include <cmath>
+#include <array>
+#include <string>
+#include <vector>
 
 // === Core UI: Ввод, валидация, списки, текст ===
 #include <imguix/widgets/input/validated_input.hpp>
@@ -202,6 +206,12 @@ private:
         ImGuiX::Widgets::LoadingSpinnerConfig sp_cfg{}; // Конфиг спиннера
         std::vector<std::string>              names{"Alice", "Bob"};
         std::vector<int>                      numbers{1, 2, 3};
+
+        std::array<ImGuiX::Widgets::LogViewerLevel, 6> log_levels{{
+            {0, "TRACE"}, {1, "DEBUG"}, {2, "INFO"},
+            {3, "WARN"}, {4, "ERROR"}, {5, "FATAL"}}};
+        std::vector<ImGuiX::Widgets::LogViewerEntry> log_entries;
+        ImGuiX::Widgets::LogViewerState log_state{2};
         
 #       ifdef IMGUIX_ENABLE_IMPLOT
         // ------------------ 8) OHLC Bars Plot (demo) ------------------
@@ -311,6 +321,22 @@ private:
             to_cfg.label    = "GMT offset";
             to_cfg.desc     = "±HH:MM:SS";
             to_cfg.show_gmt = true;
+
+            for (std::uint64_t index = 0; index < 48; ++index) {
+                const int rank = static_cast<int>(index % log_levels.size());
+                std::string message = "Synthetic log entry " + std::to_string(index);
+                if (index % 7 == 0) {
+                    message +=
+                        " with a deliberately long message that wraps across the message column";
+                }
+                log_entries.push_back({
+                    index + 1,
+                    rank,
+                    std::string("2026-10-07T12:00:") + (index < 10 ? "0" : "") +
+                        std::to_string(index) + ".000Z",
+                    log_levels[rank].label,
+                    std::move(message)});
+            }
 
             // dp_cfg (конфиг даты) можно настроить в UI-секции Date Picker
         }
@@ -422,6 +448,21 @@ private:
         }
     }
 
+    void demoLogViewer() {
+        if (ImGui::CollapsingHeader("Log Viewer", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGuiX::Widgets::LogViewerConfig config;
+            config.size = ImVec2(0.0f, 360.0f);
+            config.levels = m_state.log_levels.data();
+            config.level_count = m_state.log_levels.size();
+            config.actions.on_refresh = []() {};
+            config.actions.on_clear = []() {};
+            config.actions.on_open_folder = []() {};
+            ImGuiX::Widgets::LogViewer(
+                "demo.log_viewer", m_state.log_entries.data(), m_state.log_entries.size(),
+                m_state.log_state, config);
+        }
+    }
+
 #   ifdef IMGUIX_ENABLE_IMPLOT
     void demoPlot() {
         if (ImGui::CollapsingHeader(u8"OHLC Bars / Plot")) {
@@ -479,6 +520,7 @@ private:
         demoTime();
         demoMisc();
         demoNotifications();
+        demoLogViewer();
     }
 #   endif
 

@@ -3,6 +3,28 @@
 ImGuiX предоставляет набор виджетов, сгруппированных по доменам. Примеры ниже —
 сокращённые фрагменты из `examples/smoke/widgets_demo.cpp`, если не указано иначе.
 
+## Контейнеры
+
+### RoundedPanel
+Скруглённый дочерний контейнер для панелей, содержимое которых может доходить до
+краёв. В режиме `CoverCorners` по завершении child виджет восстанавливает четыре
+угла и рамку, скрывая пиксели, которые прямоугольный clip ImGui может оставить за
+пределами скруглённых дуг.
+```cpp
+ImGuiX::Widgets::RoundedPanelConfig panel_cfg;
+panel_cfg.rounding = 13.0f;
+panel_cfg.padding = ImVec2(0.0f, 0.0f);
+panel_cfg.clip_mode = ImGuiX::Widgets::RoundedPanelClipMode::CoverCorners;
+if (ImGuiX::Widgets::BeginRoundedPanel("logs", size, panel_cfg)) {
+    // Здесь может находиться таблица, список или прокручиваемая карточка.
+}
+ImGuiX::Widgets::EndRoundedPanel();
+```
+
+`PaddedContent` подходит, если вызывающий код сам оставляет содержимое вдали от
+скруглённых углов. Это визуальная композиция, а не clipping на уровне renderer;
+для математически точного скруглённого clipping нужен stencil/mask backend.
+
 ## Авторизация
 
 ### AuthPanel

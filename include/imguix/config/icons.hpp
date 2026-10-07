@@ -35,8 +35,20 @@
 /// \brief Clipboard copy icon.
 #define IMGUIX_ICON_COPY            u8"\uE14D"
 
+/// \brief Refresh icon.
+#define IMGUIX_ICON_REFRESH         u8"\uE5D5"
+
+/// \brief Delete or clear icon.
+#define IMGUIX_ICON_DELETE          u8"\uE872"
+
+/// \brief Open-folder icon.
+#define IMGUIX_ICON_FOLDER          u8"\uE2C8"
+
+/// \brief Close or deselect icon.
+#define IMGUIX_ICON_CLOSE           u8"\uE5CD"
+
 /// \brief Clipboard paste icon.
-#define IMGUIX_ICON_PASTE           u8"\uE2C8"
+#define IMGUIX_ICON_PASTE           u8"\uE14F"
 
 /// \brief Filter list icon.
 #define IMGUIX_ICON_FILTER_LIST     u8"\uE152"
