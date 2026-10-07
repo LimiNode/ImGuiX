@@ -55,16 +55,20 @@ namespace ImGuiX::Widgets {
             -> const LogViewerEntry& { return entries[index]; };
 
         const auto prune_state = [&]() {
+#ifndef NDEBUG
             std::unordered_set<std::uint64_t> all_ids;
-            std::unordered_set<std::uint64_t> visible_ids;
             all_ids.reserve(entry_count);
+#endif
+            std::unordered_set<std::uint64_t> visible_ids;
             visible_ids.reserve(entry_count);
             for (std::size_t index = 0; index < entry_count; ++index) {
                 const LogViewerEntry& entry = entry_at(index);
+#ifndef NDEBUG
                 const auto insertion = all_ids.insert(entry.id);
                 IM_ASSERT(
                     insertion.second &&
                     "LogViewerEntry::id must be unique within a LogViewer data set");
+#endif
                 if (entry.level_rank < state.min_level_rank) {
                     continue;
                 }
