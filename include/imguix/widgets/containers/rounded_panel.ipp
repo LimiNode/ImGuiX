@@ -344,8 +344,9 @@ namespace ImGuiX::Widgets {
 
         rounded_panel_stack().push_back(state);
 
-        // Keep the override alive across the whole BeginChild/EndChild pair.
-        // Nested RoundedPanel calls naturally follow the ImGui style stack.
+        // WindowPadding configures the child being created. Restore the
+        // caller's style before rendering content so nested windows and
+        // popups keep their own theme metrics.
         ImGui::PushStyleVar(
             ImGuiStyleVar_WindowPadding,
             padding);
@@ -353,11 +354,13 @@ namespace ImGuiX::Widgets {
         const bool child_open = ImGui::BeginChild(
             id,
             panel_size,
-            ImGuiChildFlags_None,
+            ImGuiChildFlags_AlwaysUseWindowPadding,
             ImGuiWindowFlags_NoBackground |
                 ImGuiWindowFlags_NoTitleBar |
                 ImGuiWindowFlags_NoResize |
                 ImGuiWindowFlags_NoCollapse);
+
+        ImGui::PopStyleVar();
 
         if (config.clip_mode ==
                 RoundedPanelClipMode::CoverCorners &&
@@ -413,7 +416,6 @@ namespace ImGuiX::Widgets {
         }
 
         ImGui::EndChild();
-        ImGui::PopStyleVar();
 
         ImDrawList* draw_list =
             ImGui::GetForegroundDrawList();
