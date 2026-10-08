@@ -552,6 +552,7 @@ namespace ImGuiX::Windows {
             }
 
             ImGui::EndChild();
+            return;
         }
 
         ImGui::SetCursorPos(body_start);
