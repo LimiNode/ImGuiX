@@ -234,20 +234,27 @@ namespace ImGuiX::Windows {
         }
 
         ImGui::SetCursorPos(ImVec2(x, y));
+
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.0f);
-        if (ImGui::BeginChild(
+
+        const bool menu_region_open =
+            ImGui::BeginChild(
                 u8"##imguix_main_region_menu",
                 ImVec2(width, menu_bar_height),
                 ImGuiChildFlags_AlwaysUseWindowPadding,
                 ImGuiWindowFlags_MenuBar |
-                ImGuiWindowFlags_NoScrollbar |
-                ImGuiWindowFlags_NoDecoration |
-                ImGuiWindowFlags_NoBackground
-            )) {
+                    ImGuiWindowFlags_NoScrollbar |
+                    ImGuiWindowFlags_NoDecoration |
+                    ImGuiWindowFlags_NoBackground);
+
+        ImGui::PopStyleVar();
+
+        if (menu_region_open) {
             drawMenuBar();
         }
+
         ImGui::EndChild();
-        ImGui::PopStyleVar();
+
         return menu_bar_height;
     }
 
@@ -529,18 +536,22 @@ namespace ImGuiX::Windows {
             const ImVec2 main_region_padding = computeMainRegionPadding(style);
             ImGui::SetCursorPos(ImVec2(main_region_rect.x, main_region_rect.y));
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, main_region_padding);
-            if (ImGui::BeginChild(
+            const bool main_region_open = ImGui::BeginChild(
                     u8"##imguix_main_region",
                     ImVec2(main_region_rect.width, main_region_rect.height),
                     ImGuiChildFlags_AlwaysUseWindowPadding,
                     ImGuiWindowFlags_NoScrollbar |
                     ImGuiWindowFlags_NoDecoration |
                     ImGuiWindowFlags_NoBackground
-                )) {
+                );
+
+            ImGui::PopStyleVar();
+
+            if (main_region_open) {
                 drawMainRegionContent();
             }
+
             ImGui::EndChild();
-            ImGui::PopStyleVar();
             return;
         }
 
@@ -611,19 +622,25 @@ namespace ImGuiX::Windows {
             true);
         const ImVec2 main_region_padding = computeMainRegionPadding(style);
         ImGui::SetCursorPos(ImVec2(main_region_rect.x, main_region_rect.y));
+
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, main_region_padding);
-        if (ImGui::BeginChild(
+
+        const bool main_region_open = ImGui::BeginChild(
                 u8"##imguix_main_region",
                 ImVec2(main_region_rect.width, main_region_rect.height),
                 ImGuiChildFlags_AlwaysUseWindowPadding,
                 ImGuiWindowFlags_NoScrollbar |
                 ImGuiWindowFlags_NoDecoration |
                 ImGuiWindowFlags_NoBackground
-            )) {
+            );
+
+        ImGui::PopStyleVar();
+
+        if (main_region_open) {
             drawMainRegionContent();
         }
+
         ImGui::EndChild();
-        ImGui::PopStyleVar();
     }
 
     void ImGuiFramedWindow::drawCornerLayout(float menu_bar_height) {
@@ -783,12 +800,12 @@ namespace ImGuiX::Windows {
             static_cast<LONG>(btn_max.y)
         };
 #       endif
-        
+
         ImGui::SameLine();
         if (ImGui::Button(m_config.maximize_button_text, btn_size)) {
             toggleMaximizeRestore();
         }
-        
+
         btn_min = ImGui::GetItemRectMin();
         btn_max = ImGui::GetItemRectMax();
 #       ifdef _WIN32
@@ -1331,7 +1348,7 @@ namespace ImGuiX::Windows {
             ImGuiStyleVar_WindowPadding,
             main_region_padding);
 
-        if (ImGui::BeginChild(
+        const bool main_region_open = ImGui::BeginChild(
                 u8"##imguix_main_region",
                 ImVec2(
                     main_region_rect.width,
@@ -1339,12 +1356,16 @@ namespace ImGuiX::Windows {
                 ImGuiChildFlags_AlwaysUseWindowPadding,
                 ImGuiWindowFlags_NoScrollbar |
                     ImGuiWindowFlags_NoDecoration |
-                    ImGuiWindowFlags_NoBackground)) {
+                    ImGuiWindowFlags_NoBackground
+            );
+
+        ImGui::PopStyleVar();
+
+        if (main_region_open) {
             drawMainRegionContent();
         }
 
         ImGui::EndChild();
-        ImGui::PopStyleVar();
     }
 
 } // namespace ImGuiX::Windows

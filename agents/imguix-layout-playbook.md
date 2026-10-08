@@ -47,6 +47,17 @@ Do not use `else { ImGui::NewLine(); }` in this pattern.
   `ContentSurface` must restore its padding/rounding before descendants draw so
   popups and nested children use the normal theme metrics.
 
+## Window style scope
+
+- Style overrides that configure the window or child being created (`WindowPadding`,
+  `ChildRounding`, border metrics, and similar values) should, whenever possible,
+  live only around `Begin()`/`BeginChild()`.
+- Restore the style before rendering user content after the window has been
+  created, unless inheriting the override into descendants is intentional and
+  documented.
+- Keep `Begin()`/`End()` and `BeginChild()`/`EndChild()` balanced even when the
+  begin call returns false.
+
 ## Verification checklist
 
 - Test a wide layout where controls fit on one row.
