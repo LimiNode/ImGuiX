@@ -417,8 +417,21 @@ namespace ImGuiX::Widgets {
 
         ImGui::EndChild();
 
+        // Decorations are emitted after EndChild() so they stay above the
+        // child content.  Keep that ordering, but constrain the foreground
+        // list to the effective clip rectangle of the parent window.  The
+        // parent draw list carries the intersection of all active ancestor
+        // clips, including scrolling child windows and nested panels.
+        const ImVec2 parent_clip_min =
+            ImGui::GetWindowDrawList()->GetClipRectMin();
+        const ImVec2 parent_clip_max =
+            ImGui::GetWindowDrawList()->GetClipRectMax();
         ImDrawList* draw_list =
             ImGui::GetForegroundDrawList();
+        draw_list->PushClipRect(
+            parent_clip_min,
+            parent_clip_max,
+            true);
 
         if (state.clip_mode ==
             RoundedPanelClipMode::CoverCorners) {
@@ -468,6 +481,8 @@ namespace ImGuiX::Widgets {
         drawPanelBorder(
             draw_list,
             state);
+
+        draw_list->PopClipRect();
     }
 
 } // namespace ImGuiX::Widgets
