@@ -447,16 +447,16 @@ All fonts are included unmodified. See `THIRD-PARTY-NOTICES.md` for per-family a
 ImGuiX bundles several upstream libraries as git submodules:
 
 - [Dear ImGui](https://github.com/ocornut/imgui) — immediate-mode GUI library we build on.
-- [AESCPP](https://github.com/NewYaroslav/aescpp) — AES encryption routines for C++.
+- [AESCPP](https://github.com/LimiNode/aes-cpp) — AES encryption routines for C++.
 - [fmt](https://github.com/fmtlib/fmt) — fast, type-safe formatting for modern C++.
 - [FreeType](https://github.com/freetype/freetype) — font rasterization engine used for high-quality text rendering.
 - [GLFW](https://github.com/glfw/glfw) — multi-platform window, context, and input library.
-- [ImCoolBar](https://github.com/NewYaroslav/ImCoolBar) — animated toolbar widget for ImGui.
+- [ImCoolBar](https://github.com/LimiNode/ImCoolBar) — animated toolbar widget for ImGui.
 - [ImGui Command Palette](https://github.com/pthom/imgui-command-palette) — Sublime/VSCode-style command palette.
 - [ImGui-SFML](https://github.com/SFML/imgui-sfml) — binding that integrates Dear ImGui with SFML.
-- [ImGuiColorTextEdit](https://github.com/NewYaroslav/ImGuiColorTextEdit) — syntax-highlighting text editor for ImGui.
+- [ImGuiColorTextEdit](https://github.com/LimiNode/ImGuiColorTextEdit) — syntax-highlighting text editor for ImGui.
 - [ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog) — file selection dialog for ImGui.
-- [imgui_md](https://github.com/NewYaroslav/imgui_md) — Markdown renderer based on MD4C.
+- [imgui_md](https://github.com/LimiNode/imgui_md) — Markdown renderer based on MD4C.
 - [ImNodeFlow](https://github.com/Fattorino/ImNodeFlow) — node-based editor & blueprint system for Dear ImGui.
 - [ImPlot](https://github.com/epezent/implot) — immediate-mode plotting for Dear ImGui.
 - [ImPlot3D](https://github.com/brenocq/implot3d) — 3D plotting extension for ImPlot.
