@@ -49,6 +49,7 @@
 #   include <imguix/widgets/plot/MetricsPlot.hpp>
 #   include <imguix/widgets/plot/MetricsPlotSet.hpp>
 #   include <imguix/widgets/plot/PlotOHLCChart.hpp>
+#   include <imguix/widgets/plot/plot_overlay.hpp>
 #endif
 
 #endif // IMGUIX_WIDGETS_HPP_INCLUDED
