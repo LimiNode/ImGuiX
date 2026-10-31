@@ -21,6 +21,8 @@ namespace ImGuiX::Widgets {
             RoundedPanelClipMode clip_mode{
                 RoundedPanelClipMode::CoverCorners};
 
+            bool draw_decorations_in_child{false};
+
             bool content_clip_pushed{false};
         };
 
@@ -341,6 +343,8 @@ namespace ImGuiX::Widgets {
             ImGui::GetColorU32(border_color);
         state.clip_mode =
             config.clip_mode;
+        state.draw_decorations_in_child =
+            config.draw_decorations_in_child;
 
         rounded_panel_stack().push_back(state);
 
@@ -415,19 +419,23 @@ namespace ImGuiX::Widgets {
             ImGui::PopClipRect();
         }
 
-        ImGui::EndChild();
+        // Child-local decorations are appended after the child content, so
+        // popup windows submitted later remain above the panel. Existing
+        // callers retain the legacy foreground ordering by default.
+        ImDrawList* draw_list = nullptr;
+        ImVec2 parent_clip_min{};
+        ImVec2 parent_clip_max{};
+        if (state.draw_decorations_in_child) {
+            draw_list = ImGui::GetWindowDrawList();
+            parent_clip_min = draw_list->GetClipRectMin();
+            parent_clip_max = draw_list->GetClipRectMax();
+        } else {
+            ImGui::EndChild();
+            parent_clip_min = ImGui::GetWindowDrawList()->GetClipRectMin();
+            parent_clip_max = ImGui::GetWindowDrawList()->GetClipRectMax();
+            draw_list = ImGui::GetForegroundDrawList();
+        }
 
-        // Decorations are emitted after EndChild() so they stay above the
-        // child content.  Keep that ordering, but constrain the foreground
-        // list to the effective clip rectangle of the parent window.  The
-        // parent draw list carries the intersection of all active ancestor
-        // clips, including scrolling child windows and nested panels.
-        const ImVec2 parent_clip_min =
-            ImGui::GetWindowDrawList()->GetClipRectMin();
-        const ImVec2 parent_clip_max =
-            ImGui::GetWindowDrawList()->GetClipRectMax();
-        ImDrawList* draw_list =
-            ImGui::GetForegroundDrawList();
         draw_list->PushClipRect(
             parent_clip_min,
             parent_clip_max,
@@ -483,6 +491,10 @@ namespace ImGuiX::Widgets {
             state);
 
         draw_list->PopClipRect();
+
+        if (state.draw_decorations_in_child) {
+            ImGui::EndChild();
+        }
     }
 
 } // namespace ImGuiX::Widgets
