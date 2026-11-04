@@ -218,6 +218,11 @@ namespace ImGuiX::Widgets {
                 return;
             }
 
+            // Textured AA lines can lose coverage along a long, thin panel
+            // edge at some rasterized sizes. Use geometry AA for this border
+            // without changing the draw-list policy for later items.
+            const ImDrawListFlags saved_flags = draw_list->Flags;
+            draw_list->Flags &= ~ImDrawListFlags_AntiAliasedLinesUseTex;
             draw_list->AddRect(
                 border_min,
                 border_max,
@@ -227,6 +232,7 @@ namespace ImGuiX::Widgets {
                     state.rounding - inset),
                 ImDrawFlags_RoundCornersAll,
                 state.border_thickness);
+            draw_list->Flags = saved_flags;
         }
 
         void drawBottomCornerCovers(

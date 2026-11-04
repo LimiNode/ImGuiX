@@ -93,11 +93,16 @@ namespace {
             ImGui::GetWindowDrawList()->GetClipRectMin();
         const ImVec2 child_clip_max =
             ImGui::GetWindowDrawList()->GetClipRectMax();
+        ImDrawList* child_draw_list = ImGui::GetWindowDrawList();
+        child_draw_list->Flags |= ImDrawListFlags_AntiAliasedLinesUseTex;
+        const ImDrawListFlags child_flags = child_draw_list->Flags;
 
         if (panel_open) {
             ImGui::Dummy(panel_size);
         }
         ImGuiX::Widgets::EndRoundedPanel();
+        const bool child_flags_restored =
+            child_draw_list->Flags == child_flags;
 
         ImGui::PopClipRect();
         ImGui::EndChild();
@@ -106,6 +111,9 @@ namespace {
 
         bool found_border = false;
         bool border_used_parent_clip = false;
+        bool found_geometry_fringe = false;
+        const ImU32 transparent_border_color =
+            border_color & ~IM_COL32_A_MASK;
         const ImDrawData* draw_data = ImGui::GetDrawData();
         for (int list_index = 0;
              list_index < draw_data->CmdListsCount;
@@ -113,6 +121,7 @@ namespace {
             const ImDrawList* draw_list = draw_data->CmdLists[list_index];
             for (const ImDrawCmd& command : draw_list->CmdBuffer) {
                 bool has_border_vertex = false;
+                bool has_geometry_fringe = false;
                 for (unsigned int index = 0;
                      index < command.ElemCount;
                      ++index) {
@@ -123,7 +132,9 @@ namespace {
                             command.VtxOffset + draw_index];
                     if (vertex.col == border_color) {
                         has_border_vertex = true;
-                        break;
+                    }
+                    if (vertex.col == transparent_border_color) {
+                        has_geometry_fringe = true;
                     }
                 }
                 if (!has_border_vertex) {
@@ -131,6 +142,7 @@ namespace {
                 }
 
                 found_border = true;
+                found_geometry_fringe |= has_geometry_fringe;
                 border_used_parent_clip = clip_matches(
                     command.ClipRect,
                     parent_clip_min,
@@ -159,13 +171,19 @@ namespace {
                 "child-local border did not use the saved parent clip\n";
             return false;
         }
+        if (!found_geometry_fringe || !child_flags_restored) {
+            std::cerr <<
+                "panel border did not use geometry AA or restore draw-list flags\n";
+            return false;
+        }
         return true;
     }
 
 }  // namespace
 
 int main() {
-    if (!check_height(180.0f) || !check_height(220.0f)) {
+    if (!check_height(180.0f) || !check_height(220.0f) ||
+        !check_height(300.0f) || !check_height(400.0f)) {
         return 1;
     }
     return 0;
