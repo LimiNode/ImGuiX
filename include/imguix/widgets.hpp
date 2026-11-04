@@ -36,6 +36,7 @@
 #include <imguix/widgets/misc/markers.hpp>
 #include <imguix/widgets/misc/status_indicator.hpp>
 #include <imguix/widgets/misc/text_center.hpp>
+#include <imguix/widgets/misc/text_pair.hpp>
 
 #include <imguix/widgets/time/date_picker.hpp>
 #include <imguix/widgets/time/days_selector.hpp>
