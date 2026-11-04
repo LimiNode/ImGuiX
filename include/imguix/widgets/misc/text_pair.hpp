@@ -24,12 +24,13 @@ namespace ImGuiX::Widgets {
         TextPart left{};
         TextPart right{};
         float spacing = 6.0f;
-        float right_offset_y = 0.0f;
+        float right_offset_y = 0.0f;  ///< Relative top offset; negative values are supported.
     };
 
     /// \brief Draw two text parts with their top edges aligned.
     /// \param config Text, fonts, colors, spacing, and optional right offset.
     /// \return The total occupied size reserved in the current ImGui layout.
+    ///         Negative right offsets are included in the occupied rectangle.
     /// \note A zero font size uses the part font's native size, or the active
     ///       ImGui font size when the part font is null.
     ImVec2 TextPair(const TextPairConfig& config);

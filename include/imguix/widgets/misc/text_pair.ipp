@@ -17,24 +17,21 @@ namespace ImGuiX::Widgets {
             // A null part font means "use the active font and size". An
             // explicitly supplied font uses its native registration size when
             // no override is requested.
-            const float font_size = part.font_size > 0.0f
-                                        ? part.font_size
-                                        : (part.font != nullptr && font != nullptr
-                                               ? font->LegacySize
-                                               : 0.0f);
+            const float font_size =
+                part.font_size > 0.0f
+                    ? part.font_size
+                    : (part.font != nullptr && font != nullptr ? font->LegacySize : 0.0f);
 
             ImGui::PushFont(font, font_size);
             const char* begin = part.text.data();
             const char* end = begin != nullptr ? begin + part.text.size() : nullptr;
-            const ImVec2 size = begin != nullptr
-                                    ? ImGui::CalcTextSize(begin, end, false, -1.0f)
-                                    : ImVec2{};
+            const ImVec2 size =
+                begin != nullptr ? ImGui::CalcTextSize(begin, end, false, -1.0f) : ImVec2{};
             ImGui::PopFont();
             return MeasuredText{size, font, font_size};
         }
 
-        void draw_text(const TextPart& part, const MeasuredText& measured,
-                       const ImVec2& position) {
+        void draw_text(const TextPart& part, const MeasuredText& measured, const ImVec2& position) {
             if (part.text.empty() || measured.font == nullptr) {
                 return;
             }
@@ -42,8 +39,8 @@ namespace ImGuiX::Widgets {
             const char* begin = part.text.data();
             const char* end = begin + part.text.size();
             ImGui::PushFont(measured.font, measured.font_size);
-            ImGui::GetWindowDrawList()->AddText(
-                position, ImGui::GetColorU32(part.color), begin, end);
+            ImGui::GetWindowDrawList()->AddText(position, ImGui::GetColorU32(part.color), begin,
+                                                end);
             ImGui::PopFont();
         }
 
@@ -57,15 +54,20 @@ namespace ImGuiX::Widgets {
                                   : 0.0f;
         const float right_y = config.right_offset_y;
         const float width = left.size.x + spacing + right.size.x;
-        const float height = std::max(left.size.y, right_y + right.size.y);
+        const float top_offset = std::min(0.0f, right_y);
+        const float bottom = std::max(left.size.y, right_y + right.size.y);
+        const float height = std::max(0.0f, bottom - top_offset);
         const ImVec2 origin = ImGui::GetCursorScreenPos();
 
         draw_text(config.left, left, origin);
-        draw_text(config.right, right, ImVec2(origin.x + left.size.x + spacing,
-                                              origin.y + right_y));
+        draw_text(config.right, right,
+                  ImVec2(origin.x + left.size.x + spacing, origin.y + right_y));
 
-        ImGui::Dummy(ImVec2(width, std::max(0.0f, height)));
-        return ImVec2(width, std::max(0.0f, height));
+        // Move the layout item to the top of the complete occupied rectangle
+        // so a negative right offset cannot escape the size reserved below.
+        ImGui::SetCursorScreenPos(ImVec2(origin.x, origin.y + top_offset));
+        ImGui::Dummy(ImVec2(width, height));
+        return ImVec2(width, height);
     }
 
 }  // namespace ImGuiX::Widgets

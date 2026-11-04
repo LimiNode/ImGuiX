@@ -60,16 +60,15 @@ namespace {
         const ImVec2 right_size = measure("▲ +500.00", 12.0f);
 
         ImGuiX::Widgets::TextPairConfig first_config;
-        first_config.left = ImGuiX::Widgets::TextPart{
-            "17 500.00 USD", ImGui::GetFont(), ImVec4(0.95f, 0.95f, 0.95f, 1.0f), 24.0f};
-        first_config.right = ImGuiX::Widgets::TextPart{
-            u8"▲ +500.00", ImGui::GetFont(), ImVec4(0.1f, 0.8f, 0.2f, 1.0f), 12.0f};
+        first_config.left = ImGuiX::Widgets::TextPart{"17 500.00 USD", ImGui::GetFont(),
+                                                      ImVec4(0.95f, 0.95f, 0.95f, 1.0f), 24.0f};
+        first_config.right = ImGuiX::Widgets::TextPart{u8"▲ +500.00", ImGui::GetFont(),
+                                                       ImVec4(0.1f, 0.8f, 0.2f, 1.0f), 12.0f};
         first_config.spacing = 5.0f;
         const ImVec2 first_size = ImGuiX::Widgets::TextPair(first_config);
 
-        const ImVec2 expected_first(
-            left_size.x + 5.0f + right_size.x,
-            std::max(left_size.y, right_size.y));
+        const ImVec2 expected_first(left_size.x + 5.0f + right_size.x,
+                                    std::max(left_size.y, right_size.y));
         if (!nearly_equal(first_size.x, expected_first.x) ||
             !nearly_equal(first_size.y, expected_first.y) ||
             !nearly_equal(ImGui::GetItemRectSize().x, expected_first.x) ||
@@ -83,34 +82,54 @@ namespace {
 
         const ImVec2 second_origin = ImGui::GetCursorScreenPos();
         ImGuiX::Widgets::TextPairConfig second_config;
-        second_config.left = ImGuiX::Widgets::TextPart{
-            "short", ImGui::GetFont(), ImVec4(0.2f, 0.4f, 1.0f, 1.0f), 12.0f};
-        second_config.right = ImGuiX::Widgets::TextPart{
-            "offset", ImGui::GetFont(), ImVec4(1.0f, 0.5f, 0.1f, 1.0f), 20.0f};
+        second_config.left = ImGuiX::Widgets::TextPart{"short", ImGui::GetFont(),
+                                                       ImVec4(0.2f, 0.4f, 1.0f, 1.0f), 12.0f};
+        second_config.right = ImGuiX::Widgets::TextPart{"offset", ImGui::GetFont(),
+                                                        ImVec4(1.0f, 0.5f, 0.1f, 1.0f), 20.0f};
         second_config.spacing = 3.0f;
         second_config.right_offset_y = 2.0f;
         const ImVec2 second_size = ImGuiX::Widgets::TextPair(second_config);
         const ImVec2 second_left_size = measure("short", 12.0f);
         const ImVec2 second_right_size = measure("offset", 20.0f);
-        const ImVec2 expected_second(
-            second_left_size.x + 3.0f + second_right_size.x,
-            std::max(second_left_size.y, 2.0f + second_right_size.y));
+        const ImVec2 expected_second(second_left_size.x + 3.0f + second_right_size.x,
+                                     std::max(second_left_size.y, 2.0f + second_right_size.y));
 
         const bool geometry_ok = nearly_equal(second_size.x, expected_second.x) &&
                                  nearly_equal(second_size.y, expected_second.y) &&
                                  second_origin.y >= first_origin.y + expected_first.y;
+
+        const ImVec2 third_origin = ImGui::GetCursorScreenPos();
+        ImGuiX::Widgets::TextPairConfig third_config;
+        third_config.left = ImGuiX::Widgets::TextPart{"left", ImGui::GetFont(),
+                                                      ImVec4(0.8f, 0.8f, 0.8f, 1.0f), 14.0f};
+        third_config.right = ImGuiX::Widgets::TextPart{"above", ImGui::GetFont(),
+                                                       ImVec4(0.9f, 0.6f, 0.1f, 1.0f), 10.0f};
+        third_config.spacing = 2.0f;
+        third_config.right_offset_y = -4.0f;
+        const ImVec2 third_size = ImGuiX::Widgets::TextPair(third_config);
+        const ImVec2 third_left_size = measure("left", 14.0f);
+        const ImVec2 third_right_size = measure("above", 10.0f);
+        const float third_bottom = std::max(third_left_size.y, -4.0f + third_right_size.y);
+        const ImVec2 expected_third(third_left_size.x + 2.0f + third_right_size.x,
+                                    third_bottom + 4.0f);
+        const ImVec2 third_item_min = ImGui::GetItemRectMin();
+        const ImVec2 third_item_max = ImGui::GetItemRectMax();
+        const bool negative_offset_ok =
+            nearly_equal(third_size.x, expected_third.x) &&
+            nearly_equal(third_size.y, expected_third.y) &&
+            nearly_equal(third_item_min.y, third_origin.y - 4.0f) &&
+            nearly_equal(third_item_max.y, third_origin.y + third_bottom);
         ImGui::End();
         ImGui::Render();
 
-        const bool colors_ok =
-            has_vertex_color(ImGui::GetColorU32(first_config.left.color)) &&
-            has_vertex_color(ImGui::GetColorU32(first_config.right.color)) &&
-            has_vertex_color(ImGui::GetColorU32(second_config.left.color)) &&
-            has_vertex_color(ImGui::GetColorU32(second_config.right.color));
+        const bool colors_ok = has_vertex_color(ImGui::GetColorU32(first_config.left.color)) &&
+                               has_vertex_color(ImGui::GetColorU32(first_config.right.color)) &&
+                               has_vertex_color(ImGui::GetColorU32(second_config.left.color)) &&
+                               has_vertex_color(ImGui::GetColorU32(second_config.right.color));
 
         ImGui::DestroyContext();
-        if (!geometry_ok || !colors_ok) {
-            std::cerr << "TextPair did not preserve independent geometry or styling\n";
+        if (!geometry_ok || !negative_offset_ok || !colors_ok) {
+            std::cerr << "TextPair did not preserve geometry or independent styling\n";
             return false;
         }
         return true;
