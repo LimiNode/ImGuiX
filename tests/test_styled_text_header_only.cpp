@@ -35,6 +35,9 @@ int main() {
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(640.0f, 480.0f);
     io.DeltaTime = 1.0f / 60.0f;
+    ImFontConfig large_font_config;
+    large_font_config.SizePixels = 22.0f;
+    ImFont* large_font = io.Fonts->AddFontDefault(&large_font_config);
     unsigned char* pixels = nullptr;
     int atlas_width = 0;
     int atlas_height = 0;
@@ -72,6 +75,16 @@ int main() {
         ImGui::Render();
         ImGui::DestroyContext();
         std::cerr << "StyledText overload did not reserve geometry\n";
+        return 1;
+    }
+
+    const ImVec2 native_size = ImGuiX::Widgets::StyledText(
+        ImGuiX::Widgets::StyledTextConfig{"Native UTF-8: Прибыль", large_font, color});
+    if (native_size.y <= expected.y || ImGui::GetFont() != saved_font) {
+        ImGui::End();
+        ImGui::Render();
+        ImGui::DestroyContext();
+        std::cerr << "StyledText did not use the explicitly registered native font\n";
         return 1;
     }
 
