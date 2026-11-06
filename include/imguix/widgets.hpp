@@ -35,7 +35,9 @@
 #include <imguix/widgets/misc/loading_spinner.hpp>
 #include <imguix/widgets/misc/markers.hpp>
 #include <imguix/widgets/misc/status_indicator.hpp>
+#include <imguix/widgets/misc/styled_text.hpp>
 #include <imguix/widgets/misc/text_center.hpp>
+#include <imguix/widgets/misc/text_pair.hpp>
 
 #include <imguix/widgets/time/date_picker.hpp>
 #include <imguix/widgets/time/days_selector.hpp>
@@ -49,6 +51,7 @@
 #   include <imguix/widgets/plot/MetricsPlot.hpp>
 #   include <imguix/widgets/plot/MetricsPlotSet.hpp>
 #   include <imguix/widgets/plot/PlotOHLCChart.hpp>
+#   include <imguix/widgets/plot/plot_overlay.hpp>
 #endif
 
 #endif // IMGUIX_WIDGETS_HPP_INCLUDED
