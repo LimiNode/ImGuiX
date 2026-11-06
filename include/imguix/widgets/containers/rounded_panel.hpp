@@ -29,6 +29,11 @@ namespace ImGuiX::Widgets {
         ImVec2 padding{-1.0f, -1.0f}; ///< Negative component uses ImGuiStyle::WindowPadding.
 
         RoundedPanelClipMode clip_mode{RoundedPanelClipMode::CoverCorners};
+
+        /// Draw the panel's border/corner covers in the child draw list after
+        /// its contents. This keeps decorations below popup windows while
+        /// preserving the legacy foreground ordering for existing callers.
+        bool draw_decorations_in_child{false};
     };
 
     /// \brief Begin a rounded, borderable child panel.

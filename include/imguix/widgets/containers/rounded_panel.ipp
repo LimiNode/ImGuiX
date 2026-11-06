@@ -18,8 +18,17 @@ namespace ImGuiX::Widgets {
             ImU32 outside_color{0};
             ImU32 border_color{0};
 
+            // Decorations rendered into the child draw list must retain the
+            // effective clip owned by the caller.  Capturing it before
+            // BeginChild() avoids accidentally using the child viewport as
+            // the border's clip rectangle.
+            ImVec2 parent_clip_min{};
+            ImVec2 parent_clip_max{};
+
             RoundedPanelClipMode clip_mode{
                 RoundedPanelClipMode::CoverCorners};
+
+            bool draw_decorations_in_child{false};
 
             bool content_clip_pushed{false};
         };
@@ -209,6 +218,11 @@ namespace ImGuiX::Widgets {
                 return;
             }
 
+            // Textured AA lines can lose coverage along a long, thin panel
+            // edge at some rasterized sizes. Use geometry AA for this border
+            // without changing the draw-list policy for later items.
+            const ImDrawListFlags saved_flags = draw_list->Flags;
+            draw_list->Flags &= ~ImDrawListFlags_AntiAliasedLinesUseTex;
             draw_list->AddRect(
                 border_min,
                 border_max,
@@ -218,6 +232,7 @@ namespace ImGuiX::Widgets {
                     state.rounding - inset),
                 ImDrawFlags_RoundCornersAll,
                 state.border_thickness);
+            draw_list->Flags = saved_flags;
         }
 
         void drawBottomCornerCovers(
@@ -317,6 +332,11 @@ namespace ImGuiX::Widgets {
         const ImU32 background_u32 =
             ImGui::GetColorU32(background_color);
 
+        const ImVec2 parent_clip_min =
+            ImGui::GetWindowDrawList()->GetClipRectMin();
+        const ImVec2 parent_clip_max =
+            ImGui::GetWindowDrawList()->GetClipRectMax();
+
         // The real child background stays disabled. Draw the visual rounded
         // surface in the parent first; the child itself remains rectangular
         // and is visually clipped during EndRoundedPanel().
@@ -339,8 +359,12 @@ namespace ImGuiX::Widgets {
             ImGui::GetColorU32(outside_color);
         state.border_color =
             ImGui::GetColorU32(border_color);
+        state.parent_clip_min = parent_clip_min;
+        state.parent_clip_max = parent_clip_max;
         state.clip_mode =
             config.clip_mode;
+        state.draw_decorations_in_child =
+            config.draw_decorations_in_child;
 
         rounded_panel_stack().push_back(state);
 
@@ -415,23 +439,25 @@ namespace ImGuiX::Widgets {
             ImGui::PopClipRect();
         }
 
-        ImGui::EndChild();
+        // Child-local decorations are appended after the child content, so
+        // popup windows submitted later remain above the panel. Existing
+        // callers retain the legacy foreground ordering by default.
+        ImDrawList* draw_list = nullptr;
+        if (state.draw_decorations_in_child) {
+            draw_list = ImGui::GetWindowDrawList();
+        } else {
+            ImGui::EndChild();
+            draw_list = ImGui::GetForegroundDrawList();
+        }
 
-        // Decorations are emitted after EndChild() so they stay above the
-        // child content.  Keep that ordering, but constrain the foreground
-        // list to the effective clip rectangle of the parent window.  The
-        // parent draw list carries the intersection of all active ancestor
-        // clips, including scrolling child windows and nested panels.
-        const ImVec2 parent_clip_min =
-            ImGui::GetWindowDrawList()->GetClipRectMin();
-        const ImVec2 parent_clip_max =
-            ImGui::GetWindowDrawList()->GetClipRectMax();
-        ImDrawList* draw_list =
-            ImGui::GetForegroundDrawList();
+        // In child-local mode the child draw list already carries its own
+        // viewport clip.  Re-intersecting with it can trim a border drawn on
+        // the panel edge.  Replace that temporary clip with the effective
+        // caller clip for decorations, then restore the child stack below.
         draw_list->PushClipRect(
-            parent_clip_min,
-            parent_clip_max,
-            true);
+            state.parent_clip_min,
+            state.parent_clip_max,
+            state.draw_decorations_in_child ? false : true);
 
         if (state.clip_mode ==
             RoundedPanelClipMode::CoverCorners) {
@@ -483,6 +509,10 @@ namespace ImGuiX::Widgets {
             state);
 
         draw_list->PopClipRect();
+
+        if (state.draw_decorations_in_child) {
+            ImGui::EndChild();
+        }
     }
 
 } // namespace ImGuiX::Widgets
