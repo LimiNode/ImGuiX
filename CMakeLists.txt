@@ -414,6 +414,8 @@ endif()
 if(IMGUIX_BUILD_TESTS)
     enable_testing()
     file(GLOB TESTS CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
+    list(REMOVE_ITEM TESTS
+        "${PROJECT_SOURCE_DIR}/tests/test_layout_primitives_multi_tu_support.cpp")
 
     imguix_stage_assets_once(
         NAME imguix_tests_assets
@@ -430,6 +432,12 @@ if(IMGUIX_BUILD_TESTS)
     foreach(TEST_FILE ${TESTS})
         get_filename_component(TEST_NAME "${TEST_FILE}" NAME_WE)
         add_executable(${TEST_NAME} "${TEST_FILE}")
+
+        if(TEST_NAME STREQUAL "test_layout_primitives_header_only")
+            target_compile_definitions(${TEST_NAME} PRIVATE IMGUIX_HEADER_ONLY)
+            target_sources(${TEST_NAME} PRIVATE
+                "${PROJECT_SOURCE_DIR}/tests/test_layout_primitives_multi_tu_support.cpp")
+        endif()
 
         target_compile_definitions(${TEST_NAME} PRIVATE IMGUIX_DEMO)
 
