@@ -31,32 +31,30 @@ namespace ImGuiX::Widgets {
             switch (corner) {
                 case 0:
                     draw_list->PathLineTo(geometry.min);
-                    draw_list->PathLineTo(ImVec2(geometry.min.x, geometry.min.y + radius));
                     draw_list->PathArcTo(ImVec2(geometry.min.x + radius, geometry.min.y + radius),
-                                         radius, pi, pi * 1.5f, 8);
+                                         radius, pi * 1.5f, pi, 8);
                     break;
                 case 1:
                     draw_list->PathLineTo(ImVec2(geometry.max.x, geometry.min.y));
-                    draw_list->PathLineTo(ImVec2(geometry.max.x - radius, geometry.min.y));
                     draw_list->PathArcTo(ImVec2(geometry.max.x - radius, geometry.min.y + radius),
-                                         radius, pi * 1.5f, pi * 2.0f, 8);
+                                         radius, 0.0f, -pi * 0.5f, 8);
                     break;
                 case 2:
                     draw_list->PathLineTo(geometry.max);
-                    draw_list->PathLineTo(ImVec2(geometry.max.x, geometry.max.y - radius));
                     draw_list->PathArcTo(ImVec2(geometry.max.x - radius, geometry.max.y - radius),
-                                         radius, 0.0f, pi * 0.5f, 8);
+                                         radius, pi * 0.5f, 0.0f, 8);
                     break;
                 case 3:
                     draw_list->PathLineTo(ImVec2(geometry.min.x, geometry.max.y));
-                    draw_list->PathLineTo(ImVec2(geometry.min.x + radius, geometry.max.y));
                     draw_list->PathArcTo(ImVec2(geometry.min.x + radius, geometry.max.y - radius),
-                                         radius, pi * 0.5f, pi, 8);
+                                         radius, pi, pi * 0.5f, 8);
                     break;
                 default:
                     return;
             }
-            draw_list->PathFillConvex(geometry.surface_color);
+            // Outside-circle wedges are concave, not convex polygons. Clockwise
+            // winding also keeps the AA fringe outside the covered silhouette.
+            draw_list->PathFillConcave(geometry.surface_color);
         }
 
     }  // namespace detail

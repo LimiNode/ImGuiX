@@ -11,15 +11,17 @@ namespace ImGuiX::Widgets {
 
     /// \brief Geometry and effective clipping for a rounded table surface.
     struct TableSurfaceGeometry final {
-        ImVec2 min{};
-        ImVec2 max{};
-        float rounding{0.0f};
-        ImU32 surface_color{0};
-        ImVec2 clip_min{};
-        ImVec2 clip_max{};
+        ImVec2 min{}; ///< Screen-space table bounds captured by the caller.
+        ImVec2 max{}; ///< Bottom-right table corner.
+        float rounding{0.0f}; ///< Corner radius, clamped to the table dimensions.
+        ImU32 surface_color{0}; ///< Opaque host surface color used outside the rounded silhouette.
+        ImVec2 clip_min{}; ///< Effective host clip, captured before entering the table.
+        ImVec2 clip_max{}; ///< Bottom-right effective host clip boundary.
     };
 
     /// \brief Draw a rounded rectangular surface below table contents.
+    /// \param draw_list Table-owned draw list; never a global foreground list.
+    /// \param geometry Table bounds, host color, and effective clipping.
     void DrawTableSurfaceBackground(ImDrawList* draw_list,
                                     const TableSurfaceGeometry& geometry);
 
@@ -27,6 +29,8 @@ namespace ImGuiX::Widgets {
     ///
     /// The supplied clip rectangle is intersected with the surface bounds so
     /// the helper remains safe inside scrolling child windows.
+    /// \param draw_list Table-owned draw list after EndTable merges its channels.
+    /// \param geometry Table bounds, host color, and effective clipping.
     void CoverTableSurfaceCorners(ImDrawList* draw_list,
                                   const TableSurfaceGeometry& geometry);
 
