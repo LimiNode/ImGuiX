@@ -34,6 +34,12 @@ namespace ImGuiX::Widgets {
         /// its contents. This keeps decorations below popup windows while
         /// preserving the legacy foreground ordering for existing callers.
         bool draw_decorations_in_child{false};
+
+        /// Additional child flags; AutoResizeY makes a zero height content-driven.
+        ImGuiChildFlags child_flags{ImGuiChildFlags_None};
+
+        /// Additional window flags. Defaults preserve the legacy scrolling policy.
+        ImGuiWindowFlags window_flags{ImGuiWindowFlags_None};
     };
 
     /// \brief Begin a rounded, borderable child panel.

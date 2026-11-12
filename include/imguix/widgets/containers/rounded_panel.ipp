@@ -276,28 +276,15 @@ namespace ImGuiX::Widgets {
         const ImVec2 panel_size(
             size.x > 0.0f
                 ? size.x
-                : std::max(0.0f, available.x),
+                : (config.child_flags & ImGuiChildFlags_AutoResizeX) ? 0.0f : std::max(0.0f, available.x),
             size.y > 0.0f
                 ? size.y
-                : std::max(0.0f, available.y));
-
-        const ImVec2 panel_min =
-            ImGui::GetCursorScreenPos();
-
-        const ImVec2 panel_max(
-            panel_min.x + panel_size.x,
-            panel_min.y + panel_size.y);
+                : (config.child_flags & ImGuiChildFlags_AutoResizeY) ? 0.0f : std::max(0.0f, available.y));
 
         const float requested_rounding =
             config.rounding >= 0.0f
                 ? config.rounding
                 : style.ChildRounding;
-
-        const float rounding =
-            clampRounding(
-                requested_rounding,
-                panel_min,
-                panel_max);
 
         const float border_thickness =
             std::max(
@@ -336,11 +323,28 @@ namespace ImGuiX::Widgets {
             ImGui::GetWindowDrawList()->GetClipRectMin();
         const ImVec2 parent_clip_max =
             ImGui::GetWindowDrawList()->GetClipRectMax();
+        ImDrawList* parent_draw_list = ImGui::GetWindowDrawList();
+
+        // BeginChild resolves auto-resize/constraints from the previous frame.
+        // Requested size is not the decoration geometry for a content panel.
+        // Restore child padding before descendants/popups inherit the style.
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
+        const bool child_open = ImGui::BeginChild(
+            id, panel_size,
+            ImGuiChildFlags_AlwaysUseWindowPadding | config.child_flags,
+            ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | config.window_flags);
+        ImGui::PopStyleVar();
+
+        const ImVec2 panel_min = ImGui::GetWindowPos();
+        const ImVec2 actual_size = ImGui::GetWindowSize();
+        const ImVec2 panel_max(panel_min.x + actual_size.x, panel_min.y + actual_size.y);
+        const float rounding = clampRounding(requested_rounding, panel_min, panel_max);
 
         // The real child background stays disabled. Draw the visual rounded
         // surface in the parent first; the child itself remains rectangular
         // and is visually clipped during EndRoundedPanel().
-        ImGui::GetWindowDrawList()->AddRectFilled(
+        parent_draw_list->AddRectFilled(
             panel_min,
             panel_max,
             background_u32,
@@ -367,24 +371,6 @@ namespace ImGuiX::Widgets {
             config.draw_decorations_in_child;
 
         rounded_panel_stack().push_back(state);
-
-        // WindowPadding configures the child being created. Restore the
-        // caller's style before rendering content so nested windows and
-        // popups keep their own theme metrics.
-        ImGui::PushStyleVar(
-            ImGuiStyleVar_WindowPadding,
-            padding);
-
-        const bool child_open = ImGui::BeginChild(
-            id,
-            panel_size,
-            ImGuiChildFlags_AlwaysUseWindowPadding,
-            ImGuiWindowFlags_NoBackground |
-                ImGuiWindowFlags_NoTitleBar |
-                ImGuiWindowFlags_NoResize |
-                ImGuiWindowFlags_NoCollapse);
-
-        ImGui::PopStyleVar();
 
         if (config.clip_mode ==
                 RoundedPanelClipMode::CoverCorners &&
