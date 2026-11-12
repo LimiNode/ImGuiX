@@ -39,6 +39,7 @@ namespace ImGuiX::Widgets {
         ImVec2 panel_size             = ImVec2(0, 0); ///< 0→auto width/height
         bool   inputs_fill_width      = true;         ///< make input fields fill panel width
         bool   border                 = true;         ///< draw panel border
+        bool   embedded               = false;        ///< blend the child into the host surface
 
         // Labels
         const char* header            = u8"Proxy settings";
