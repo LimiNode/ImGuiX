@@ -18,9 +18,14 @@ namespace ImGuiX::Widgets {
         const float trailing = status_width + actions_width +
                                (status_width > 0.0f && actions_width > 0.0f ? gap : 0.0f);
         const char* title = config.title.empty() ? "" : config.title.data();
+        const ImFont* control_font = ImGui::GetFont();
+        const ImFontBaked* control_baked = ImGui::GetFontBaked();
         if (config.title_font != nullptr) {
             ImGui::PushFont(config.title_font);
         }
+        const ImFont* title_font = ImGui::GetFont();
+        const ImFontBaked* title_baked = ImGui::GetFontBaked();
+        const float title_font_size = ImGui::GetFontSize();
         const float natural_width = ImGui::CalcTextSize(title, title + config.title.size()).x;
         const bool inline_trailing =
             trailing > 0.0f && leading + natural_width + gap + trailing <= available;
@@ -30,6 +35,7 @@ namespace ImGuiX::Widgets {
             ImGui::CalcTextSize(title, title + config.title.size(), false, title_width);
         const float row_height =
             std::max(title_size.y, config.back_action || inline_trailing ? frame_height : 0.0f);
+        const bool single_line_title = title_size.y <= title_font_size + 0.5f;
         if (config.title_font != nullptr) {
             ImGui::PopFont();
         }
@@ -53,8 +59,19 @@ namespace ImGuiX::Widgets {
             }
             ImGui::SameLine(0.0f, gap);
         }
-        ImGui::SetCursorScreenPos(
-            ImVec2(origin.x + leading, origin.y + (row_height - title_size.y) * 0.5f));
+        float title_y = origin.y + (row_height - title_size.y) * 0.5f;
+        if (config.back_action && single_line_title && control_font != nullptr &&
+            title_font != nullptr && control_baked != nullptr && title_baked != nullptr) {
+            // Align baselines across the control font and a custom title font.
+            // Centering their line boxes alone visibly drifts when ascent/descent
+            // metrics differ, especially for H1 titles beside icon buttons.
+            const ImVec2 icon_size = ImGui::CalcTextSize(config.back_icon);
+            const float button_top = origin.y + (row_height - frame_height) * 0.5f;
+            const float icon_top = button_top + (frame_height - icon_size.y) * 0.5f;
+            const float control_baseline = icon_top + control_baked->Ascent;
+            title_y = control_baseline - title_baked->Ascent;
+        }
+        ImGui::SetCursorScreenPos(ImVec2(origin.x + leading, title_y));
         if (config.title_font != nullptr) {
             ImGui::PushFont(config.title_font);
         }
