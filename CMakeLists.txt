@@ -434,6 +434,7 @@ if(IMGUIX_BUILD_TESTS)
         add_executable(${TEST_NAME} "${TEST_FILE}")
 
         if(TEST_NAME STREQUAL "test_layout_primitives_header_only")
+            target_compile_definitions(${TEST_NAME} PRIVATE IMGUIX_HEADER_ONLY)
             target_sources(${TEST_NAME} PRIVATE
                 "${PROJECT_SOURCE_DIR}/tests/test_layout_primitives_multi_tu_support.cpp")
         endif()

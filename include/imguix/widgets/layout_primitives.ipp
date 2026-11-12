@@ -88,7 +88,7 @@ namespace ImGuiX::Widgets {
         return is_back_clicked;
     }
 
-    namespace {
+    namespace detail {
 
         struct ResponsiveColumnsState {
             int count{0};
@@ -97,12 +97,14 @@ namespace ImGuiX::Widgets {
             bool is_column_open{false};
         };
 
-        std::vector<ResponsiveColumnsState>& responsiveColumnsStack() {
+        IMGUIX_IMPL_INLINE std::vector<ResponsiveColumnsState>& responsiveColumnsStack() {
+            // Inline function-local storage is shared across header-only
+            // translation units while remaining isolated per UI thread.
             static thread_local std::vector<ResponsiveColumnsState> stack;
             return stack;
         }
 
-    }  // namespace
+    }  // namespace detail
 
     IMGUIX_IMPL_INLINE bool BeginResponsiveColumns(const char* id, const int count,
                                                    const ResponsiveColumnsConfig& config) {
@@ -150,12 +152,12 @@ namespace ImGuiX::Widgets {
                 ImGui::TableSetupColumn(gap_id.c_str(), ImGuiTableColumnFlags_WidthFixed, gap);
             }
         }
-        responsiveColumnsStack().push_back({count, 0, is_horizontal, false});
+        detail::responsiveColumnsStack().push_back({count, 0, is_horizontal, false});
         return true;
     }
 
     IMGUIX_IMPL_INLINE bool BeginResponsiveColumn(const int index) {
-        auto& stack = responsiveColumnsStack();
+        auto& stack = detail::responsiveColumnsStack();
         IM_ASSERT(!stack.empty());
         if (stack.empty()) {
             return false;
@@ -182,14 +184,14 @@ namespace ImGuiX::Widgets {
     }
 
     IMGUIX_IMPL_INLINE void EndResponsiveColumn() {
-        auto& stack = responsiveColumnsStack();
+        auto& stack = detail::responsiveColumnsStack();
         IM_ASSERT(!stack.empty() && stack.back().is_column_open);
         ImGui::PopID();
         stack.back().is_column_open = false;
     }
 
     IMGUIX_IMPL_INLINE void EndResponsiveColumns() {
-        auto& stack = responsiveColumnsStack();
+        auto& stack = detail::responsiveColumnsStack();
         IM_ASSERT(!stack.empty() && !stack.back().is_column_open &&
                   stack.back().next_index == stack.back().count);
         ImGui::EndTable();

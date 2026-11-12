@@ -1,4 +1,6 @@
-#define IMGUIX_HEADER_ONLY
+#ifndef IMGUIX_HEADER_ONLY
+#   define IMGUIX_HEADER_ONLY
+#endif
 
 #include <imguix/widgets/layout_primitives.hpp>
 #include <imguix/widgets/containers/section_card.hpp>
