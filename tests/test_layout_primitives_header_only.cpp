@@ -13,6 +13,8 @@
 #include <string_view>
 
 extern "C" void layout_primitives_multi_tu_probe();
+extern "C" void layout_primitives_multi_tu_finish();
+extern "C" const void* layout_primitives_multi_tu_stack();
 
 namespace {
 
@@ -55,9 +57,19 @@ namespace {
             std::exit(1);
         }
 
-        // Exercise the same public API from a second translation unit while
-        // this TU owns an independent header-only state stack.
+        // A full pair in another TU is useful, but only a split Begin/End
+        // proves both TUs actually share the same responsive-state stack.
+        if (layout_primitives_multi_tu_stack() != &ImGuiX::Widgets::detail::responsiveColumnsStack()) {
+            std::cerr << "header-only translation units do not share responsive state\n";
+            std::exit(1);
+        }
         layout_primitives_multi_tu_probe();
+        if (ImGuiX::Widgets::BeginResponsiveColumns("##cross_tu_columns", 2, columns)) {
+            ImGuiX::Widgets::BeginResponsiveColumn(0);
+            ImGui::TextUnformatted("cross-tu-left");
+            ImGuiX::Widgets::EndResponsiveColumn();
+            layout_primitives_multi_tu_finish();
+        }
 
         ImGuiX::Widgets::PageHeaderConfig header;
         header.title = "Header";
@@ -90,6 +102,7 @@ namespace {
 int main() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
     io.DisplaySize = ImVec2(800.0f, 600.0f);
     io.DeltaTime = 1.0f / 60.0f;
     unsigned char* pixels = nullptr;
@@ -119,6 +132,7 @@ int main() {
     // A second context must start with an empty layout stack and the same
     // primitives must remain usable after a full context teardown.
     ImGui::CreateContext();
+    ImGui::GetIO().IniFilename = nullptr;
     ImGui::GetIO().DeltaTime = 1.0f / 60.0f;
     ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
     draw_frame(ImVec2(1650.0f, 930.0f), true);

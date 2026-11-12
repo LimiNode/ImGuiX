@@ -17,3 +17,17 @@ extern "C" void layout_primitives_multi_tu_probe() {
     ImGuiX::Widgets::EndResponsiveColumn();
     ImGuiX::Widgets::EndResponsiveColumns();
 }
+
+// Finish a group begun in the other TU. Separate private stacks would be
+// empty here even if a complete Begin/End pair in each TU worked on its own.
+extern "C" void layout_primitives_multi_tu_finish() {
+    ImGuiX::Widgets::BeginResponsiveColumn(1);
+    ImGui::TextUnformatted("cross-tu-right");
+    ImGuiX::Widgets::EndResponsiveColumn();
+    ImGuiX::Widgets::EndResponsiveColumns();
+}
+
+// Explicit identity check also detects private stacks when assertions are off.
+extern "C" const void* layout_primitives_multi_tu_stack() {
+    return &ImGuiX::Widgets::detail::responsiveColumnsStack();
+}
