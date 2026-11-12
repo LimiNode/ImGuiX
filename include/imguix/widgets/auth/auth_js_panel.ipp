@@ -13,7 +13,10 @@ namespace ImGuiX::Widgets {
         if (size.x <= 0.0f) size.x = ImGui::CalcItemWidth();
         if (size.y <= 0.0f) size.y = std::max(height, ImGui::GetFrameHeightWithSpacing());
 
-        ImGui::BeginChild(u8"##auth_js_panel", size, cfg.border);
+        // Embedded panels inherit the host surface without leaking a transparent
+        // ChildBg override into inputs, virtual keyboards, or popup descendants.
+        ImGui::BeginChild(u8"##auth_js_panel", size, cfg.border,
+                           cfg.embedded ? ImGuiWindowFlags_NoBackground : ImGuiWindowFlags_None);
         ImGui::TextUnformatted(cfg.header.c_str());
         ImGui::Separator();
 

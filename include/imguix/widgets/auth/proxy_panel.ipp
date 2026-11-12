@@ -18,7 +18,10 @@ namespace ImGuiX::Widgets {
             return ts.x + 2.0f * ImGui::GetStyle().FramePadding.x;
         };
 
-        ImGui::BeginChild(u8"##proxy_panel", size, cfg.border);
+        // Embedded panels inherit the host surface without leaking a transparent
+        // ChildBg override into inputs, virtual keyboards, or popup descendants.
+        ImGui::BeginChild(u8"##proxy_panel", size, cfg.border,
+                           cfg.embedded ? ImGuiWindowFlags_NoBackground : ImGuiWindowFlags_None);
         ImGui::Text(u8"%s", cfg.header ? cfg.header : u8"Proxy");
         ImGui::Separator();
 

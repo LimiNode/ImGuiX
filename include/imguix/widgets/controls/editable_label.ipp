@@ -52,11 +52,14 @@ namespace ImGuiX::Widgets {
         if (hovered && config.edit_tooltip != nullptr) {
             ImGui::SetTooltip("%s", config.edit_tooltip);
         }
+        ImGui::EndGroup();
+        ImGui::PopID();
+        // Invoke application callbacks after restoring the caller's ID scope.
+        // Popup IDs opened by the callback must resolve in the same scope as
+        // the matching BeginPopup call that follows this widget.
         if (clicked && config.on_edit) {
             config.on_edit();
         }
-        ImGui::EndGroup();
-        ImGui::PopID();
         return clicked;
     }
 
