@@ -10,12 +10,15 @@
 #include <iostream>
 #include <string_view>
 
+extern "C" void layout_primitives_multi_tu_probe();
+
 namespace {
 
-    void draw_frame() {
+    void draw_frame(const ImVec2 size, const bool long_message) {
+        ImGui::GetIO().DisplaySize = size;
         ImGui::NewFrame();
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+        ImGui::SetNextWindowSize(size);
         ImGui::Begin("##layout_primitives", nullptr,
                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
 
@@ -26,7 +29,8 @@ namespace {
             std::cerr << "content card unexpectedly clipped\n";
             std::exit(1);
         }
-        ImGui::TextUnformatted("body");
+        ImGui::TextUnformatted(long_message ? "A long localized error message that changes card content."
+                                            : "body");
         ImGuiX::Widgets::EndSectionCard();
 
         ImGuiX::Widgets::ResponsiveColumnsConfig columns;
@@ -48,6 +52,10 @@ namespace {
             std::cerr << "responsive columns reused an ImGui ID\n";
             std::exit(1);
         }
+
+        // Exercise the same public API from a second translation unit while
+        // this TU owns an independent header-only state stack.
+        layout_primitives_multi_tu_probe();
 
         ImGuiX::Widgets::PageHeaderConfig header;
         header.title = "Header";
@@ -80,15 +88,16 @@ namespace {
 int main() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(900.0f, 600.0f);
+    io.DisplaySize = ImVec2(800.0f, 600.0f);
     io.DeltaTime = 1.0f / 60.0f;
     unsigned char* pixels = nullptr;
     int width = 0;
     int height = 0;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    draw_frame();
-    draw_frame();
+    draw_frame(ImVec2(800.0f, 600.0f), false);
+    draw_frame(ImVec2(1650.0f, 930.0f), true);
+    draw_frame(ImVec2(800.0f, 600.0f), false);
 
     const ImGuiWindow* window = ImGui::FindWindowByName("##layout_primitives");
     const ImGuiWindow* constrained = nullptr;
@@ -103,6 +112,14 @@ int main() {
         std::cerr << "expected constrained-only scrolling was not established\n";
         return 1;
     }
+    ImGui::DestroyContext();
+
+    // A second context must start with an empty layout stack and the same
+    // primitives must remain usable after a full context teardown.
+    ImGui::CreateContext();
+    ImGui::GetIO().DeltaTime = 1.0f / 60.0f;
+    ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    draw_frame(ImVec2(1650.0f, 930.0f), true);
     ImGui::DestroyContext();
     return 0;
 }
