@@ -14,6 +14,7 @@
 #include <imguix/widgets/containers/form_section.hpp>
 #include <imguix/widgets/containers/rounded_panel.hpp>
 #include <imguix/widgets/containers/section_card.hpp>
+#include <imguix/widgets/containers/table_surface.hpp>
 #include <imguix/widgets/layout_primitives.hpp>
 
 #include <imguix/widgets/log/log_viewer.hpp>
