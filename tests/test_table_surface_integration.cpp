@@ -10,6 +10,10 @@
 
 namespace {
 
+    float cross(const ImVec2 left, const ImVec2 right) {
+        return left.x * right.y - left.y * right.x;
+    }
+
     void require(const bool condition, const char* message) {
         if (!condition) {
             throw std::runtime_error(message);
@@ -32,12 +36,12 @@ namespace {
                         list.IdxBuffer[command.IdxOffset + index + 1]];
                     const ImDrawVert& c = list.VtxBuffer[command.VtxOffset +
                         list.IdxBuffer[command.IdxOffset + index + 2]];
-                    const float area = ImCross(b.pos - a.pos, c.pos - a.pos);
+                    const float area = cross(b.pos - a.pos, c.pos - a.pos);
                     if (std::fabs(area) < 0.0001f) {
                         continue;
                     }
-                    const float wb = ImCross(point - a.pos, c.pos - a.pos) / area;
-                    const float wc = ImCross(b.pos - a.pos, point - a.pos) / area;
+                    const float wb = cross(point - a.pos, c.pos - a.pos) / area;
+                    const float wc = cross(b.pos - a.pos, point - a.pos) / area;
                     const float wa = 1.0f - wb - wc;
                     if (wa < -0.0001f || wb < -0.0001f || wc < -0.0001f) {
                         continue;
