@@ -11,6 +11,7 @@
 #include <imguix/widgets/auth/proxy_panel.hpp>
 
 #include <imguix/widgets/containers/content_surface.hpp>
+#include <imguix/widgets/containers/form_section.hpp>
 #include <imguix/widgets/containers/rounded_panel.hpp>
 #include <imguix/widgets/containers/section_card.hpp>
 #include <imguix/widgets/layout_primitives.hpp>
@@ -18,6 +19,7 @@
 #include <imguix/widgets/log/log_viewer.hpp>
 
 #include <imguix/widgets/controls/circle_button.hpp>
+#include <imguix/widgets/controls/editable_label.hpp>
 #include <imguix/widgets/controls/icon_button.hpp>
 #include <imguix/widgets/controls/icon_combo.hpp>
 #include <imguix/widgets/controls/image_badge_button.hpp>

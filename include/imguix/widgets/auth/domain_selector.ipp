@@ -17,7 +17,10 @@ namespace ImGuiX::Widgets {
         if (size.x <= 0.0f) size.x = ImGui::CalcItemWidth();
         if (size.y <= 0.0f) size.y = std::max(height, ImGui::GetFrameHeightWithSpacing());
 
-        ImGui::BeginChild(u8"##DomainSelector", size, cfg.border);
+        // Embedded panels inherit the host surface without leaking a transparent
+        // ChildBg override into inputs, virtual keyboards, or popup descendants.
+        ImGui::BeginChild(u8"##DomainSelector", size, cfg.border,
+                           cfg.embedded ? ImGuiWindowFlags_NoBackground : ImGuiWindowFlags_None);
         ImGui::TextUnformatted(cfg.header.c_str());
         ImGui::Separator();
 
@@ -34,7 +37,15 @@ namespace ImGuiX::Widgets {
             }
             items.push_back(cfg.custom_text.c_str());
 
-            int combo_index = st->GetInt(key_combo_index, (static_cast<int>(items.size()) - 1));
+            // Derive the preset from the persisted value every frame. This keeps the combo
+            // correct when the editor switches accounts or reloads a profile with a new host.
+            int combo_index = static_cast<int>(items.size()) - 1;
+            for (int index = 0; index < static_cast<int>(cfg.domains.size()); ++index) {
+                if (cfg.domains[static_cast<std::size_t>(index)] == host) {
+                    combo_index = index;
+                    break;
+                }
+            }
             if (combo_index < 0) combo_index = static_cast<int>(items.size()) - 1;
             if (combo_index >= static_cast<int>(items.size())) combo_index = static_cast<int>(items.size()) - 1;
 
@@ -44,6 +55,9 @@ namespace ImGuiX::Widgets {
                     items.data(),
                     static_cast<int>(items.size()))) {
                 if (combo_index == static_cast<int>(cfg.domains.size())) {
+                    // Selecting Custom must leave the host outside the preset list.
+                    // Otherwise next frame derives the preset again and hides the input.
+                    // An empty default_domain intentionally starts a blank custom URL.
                     host = cfg.default_domain;
                 } else {
                     host = cfg.domains[combo_index];

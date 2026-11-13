@@ -17,6 +17,7 @@ namespace ImGuiX::Widgets {
         ImVec2      panel_size = ImVec2(0.0f, 0.0f); ///< x<=0: fill available width; y<=0: auto-computed
         bool        inputs_fill_width = true;        ///< make input fields fill panel width
         bool        border            = true;       ///< draw panel border
+        bool        embedded          = false;      ///< blend the child into the host surface
         
         std::string header       = u8"Domain";
         std::string hint_domain  = u8"domain";
@@ -33,8 +34,9 @@ namespace ImGuiX::Widgets {
         ImGuiX::Widgets::InputValidatePolicy policy = ImGuiX::Widgets::InputValidatePolicy::OnTouch;
         ImVec4      error_color = IMGUIX_COLOR_ERROR;
 
-        // Pragmatic host/domain pattern (allows subdomains and optional :port)
-        const char* domain_regex = u8R"(^[A-Za-z0-9.\-:]+$)";
+        // Accept a provider URL, including an optional path/query, while rejecting whitespace.
+        const char* domain_regex =
+            u8R"(^[A-Za-z][A-Za-z0-9+.-]*://[A-Za-z0-9.\-:]+(/[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]*)?$)";
 
         // VK trigger + keyboard configs
         bool vk_enabled = true;
