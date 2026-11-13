@@ -14,7 +14,7 @@ namespace ImGuiX::Widgets {
         ImVec2 min{}; ///< Screen-space table bounds captured by the caller.
         ImVec2 max{}; ///< Bottom-right table corner.
         float rounding{0.0f}; ///< Corner radius, clamped to the table dimensions.
-        ImU32 surface_color{0}; ///< Opaque host surface color used outside the rounded silhouette.
+        ImU32 surface_color{0}; ///< Opaque table surface color inside the rounded silhouette.
         ImVec2 clip_min{}; ///< Effective host clip, captured before entering the table.
         ImVec2 clip_max{}; ///< Bottom-right effective host clip boundary.
         ImU32 outside_color{0}; ///< Parent surface color restored at rounded corners.
