@@ -1,6 +1,7 @@
 #include <imguix/config/build.hpp>
 
 #include <algorithm>
+#include <cmath>
 
 namespace ImGuiX::Widgets {
 
@@ -50,34 +51,58 @@ namespace ImGuiX::Widgets {
             if (radius <= 0.0f) {
                 return;
             }
-            draw_list->PathClear();
+            constexpr int arc_segments = 16;
+            constexpr float coverage = 1.0f;
+            ImVec2 corner_point;
+            ImVec2 center;
+            float start_angle = 0.0f;
+            float end_angle = 0.0f;
             switch (corner) {
                 case 0:
-                    draw_list->PathLineTo(geometry.min);
-                    draw_list->PathArcTo(ImVec2(geometry.min.x + radius, geometry.min.y + radius),
-                                         radius, pi * 1.5f, pi, 8);
+                    corner_point = geometry.min - ImVec2(coverage, coverage);
+                    center = ImVec2(geometry.min.x + radius, geometry.min.y + radius);
+                    start_angle = pi * 1.5f;
+                    end_angle = pi;
                     break;
                 case 1:
-                    draw_list->PathLineTo(ImVec2(geometry.max.x, geometry.min.y));
-                    draw_list->PathArcTo(ImVec2(geometry.max.x - radius, geometry.min.y + radius),
-                                         radius, 0.0f, -pi * 0.5f, 8);
+                    corner_point = ImVec2(geometry.max.x + coverage, geometry.min.y - coverage);
+                    center = ImVec2(geometry.max.x - radius, geometry.min.y + radius);
+                    start_angle = 0.0f;
+                    end_angle = -pi * 0.5f;
                     break;
                 case 2:
-                    draw_list->PathLineTo(geometry.max);
-                    draw_list->PathArcTo(ImVec2(geometry.max.x - radius, geometry.max.y - radius),
-                                         radius, pi * 0.5f, 0.0f, 8);
+                    corner_point = geometry.max + ImVec2(coverage, coverage);
+                    center = ImVec2(geometry.max.x - radius, geometry.max.y - radius);
+                    start_angle = pi * 0.5f;
+                    end_angle = 0.0f;
                     break;
                 case 3:
-                    draw_list->PathLineTo(ImVec2(geometry.min.x, geometry.max.y));
-                    draw_list->PathArcTo(ImVec2(geometry.min.x + radius, geometry.max.y - radius),
-                                         radius, pi, pi * 0.5f, 8);
+                    corner_point = ImVec2(geometry.min.x - coverage, geometry.max.y + coverage);
+                    center = ImVec2(geometry.min.x + radius, geometry.max.y - radius);
+                    start_angle = pi;
+                    end_angle = pi * 0.5f;
                     break;
                 default:
                     return;
             }
-            // Outside-circle wedges are concave, not convex polygons. Clockwise
-            // winding also keeps the AA fringe outside the covered silhouette.
-            draw_list->PathFillConcave(geometry.surface_color);
+
+            // Convex pieces avoid winding-sensitive concave triangulation and keep
+            // the outermost corner pixels fully covered after table RowBg rendering.
+            const ImDrawListFlags original_flags = draw_list->Flags;
+            draw_list->Flags &= ~ImDrawListFlags_AntiAliasedFill;
+            ImVec2 previous(center.x + std::cos(start_angle) * radius,
+                             center.y + std::sin(start_angle) * radius);
+            for (int segment = 1; segment <= arc_segments; ++segment) {
+                const float t = static_cast<float>(segment) / static_cast<float>(arc_segments);
+                const float angle = start_angle + (end_angle - start_angle) * t;
+                const ImVec2 current(center.x + std::cos(angle) * radius,
+                                     center.y + std::sin(angle) * radius);
+                draw_list->AddTriangleFilled(
+                    corner_point, previous, current,
+                    geometry.outside_color != 0 ? geometry.outside_color : geometry.surface_color);
+                previous = current;
+            }
+            draw_list->Flags = original_flags;
         }
 
     }  // namespace detail

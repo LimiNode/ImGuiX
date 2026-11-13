@@ -17,6 +17,7 @@ namespace ImGuiX::Widgets {
         ImU32 surface_color{0}; ///< Opaque host surface color used outside the rounded silhouette.
         ImVec2 clip_min{}; ///< Effective host clip, captured before entering the table.
         ImVec2 clip_max{}; ///< Bottom-right effective host clip boundary.
+        ImU32 outside_color{0}; ///< Parent surface color restored at rounded corners.
     };
 
     /// \brief Draw a rounded rectangular surface below table contents.
