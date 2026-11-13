@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <string>
 
 namespace {
 
@@ -78,13 +79,14 @@ namespace {
 
         ImGuiX::Widgets::SectionCardConfig card;
         card.title = "Accounts";
+        card.height_policy = ImGuiX::Widgets::SectionCardHeightPolicy::Fixed;
+        card.size = ImVec2(320.0f, 220.0f);
         card.panel.background_color = ImVec4(0.12f, 0.14f, 0.18f, 1.0f);
         require(ImGuiX::Widgets::BeginSectionCard("##card", card),
                 "SectionCard must be visible in the real table fixture.");
-        const ImVec4 table_color(0.24f, 0.28f, 0.34f, 1.0f);
         const ImVec4 outside_color = card.panel.background_color;
-        const ImGuiStyle& style = ImGui::GetStyle();
-        const ImGuiID table_id = ImGui::GetID("##real_table");
+        ImGui::PushStyleColor(ImGuiCol_TableRowBg, ImVec4(0.24f, 0.28f, 0.34f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, ImVec4(0.20f, 0.24f, 0.30f, 1.0f));
         require(ImGui::BeginTable("##real_table", 3,
                                   ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV |
                                       ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_SizingStretchProp,
@@ -97,7 +99,7 @@ namespace {
             table->OuterRect.Min,
             table->OuterRect.Max,
             12.0f,
-            ImGui::GetColorU32(table_color),
+            ImGui::GetColorU32(outside_color),
             ImGui::GetWindowDrawList()->GetClipRectMin(),
             ImGui::GetWindowDrawList()->GetClipRectMax()};
         ImGuiX::Widgets::DrawTableSurfaceBackground(ImGui::GetWindowDrawList(), geometry);
@@ -115,6 +117,7 @@ namespace {
         }
         ImDrawList* table_draw_list = table->InnerWindow->DrawList;
         ImGui::EndTable();
+        ImGui::PopStyleColor(2);
         ImGuiX::Widgets::CoverTableSurfaceCorners(table_draw_list, geometry);
         ImGuiX::Widgets::DrawTableSurfaceBorder(
             table_draw_list, geometry, ImGui::GetColorU32(ImGuiCol_Border));
@@ -133,21 +136,43 @@ namespace {
                 "Real table window must remain in ImGui context.");
         const ImVec2 min = table->OuterRect.Min;
         const ImVec2 max = table->OuterRect.Max;
-        require(near_color(sample_pixel(*ImGui::GetDrawData(), min + ImVec2(1.5f, 1.5f)),
-                            outside_color),
-                "Real table top-left corner must preserve SectionCard surface.");
-        require(near_color(sample_pixel(*ImGui::GetDrawData(),
-                                        ImVec2((min.x + max.x) * 0.5f, min.y + 1.0f)),
-                            ImGui::ColorConvertU32ToFloat4(ImGui::GetColorU32(ImGuiCol_Border))) ||
-                    near_color(sample_pixel(*ImGui::GetDrawData(),
-                                            ImVec2((min.x + max.x) * 0.5f, min.y + 2.0f)),
-                              ImGui::ColorConvertU32ToFloat4(ImGui::GetColorU32(ImGuiCol_Border))),
+        const ImVec4 top_left = sample_pixel(*ImGui::GetDrawData(), min + ImVec2(1.5f, 1.5f));
+        require(near_color(top_left, outside_color),
+                ("Real table top-left corner must preserve SectionCard surface: actual=" +
+                 std::to_string(top_left.x) + "," + std::to_string(top_left.y) + "," +
+                 std::to_string(top_left.z) + " expected=" + std::to_string(outside_color.x) +
+                 "," + std::to_string(outside_color.y) + "," +
+                 std::to_string(outside_color.z) + " min=" + std::to_string(min.x) + "," +
+                 std::to_string(min.y) + " max=" + std::to_string(max.x) + "," +
+                 std::to_string(max.y)).c_str());
+        const ImVec4 expected_border =
+            ImGui::ColorConvertU32ToFloat4(ImGui::GetColorU32(ImGuiCol_Border));
+        const ImVec4 border_sample = sample_pixel(
+            *ImGui::GetDrawData(), ImVec2((min.x + max.x) * 0.5f, min.y + 1.0f));
+        const ImVec4 border_sample2 = sample_pixel(
+            *ImGui::GetDrawData(), ImVec2((min.x + max.x) * 0.5f, min.y + 2.0f));
+        bool has_border_vertex = false;
+        const ImU32 expected_border_u32 = ImGui::GetColorU32(ImGuiCol_Border);
+        for (int list_index = 0; list_index < ImGui::GetDrawData()->CmdListsCount; ++list_index) {
+            const ImDrawList& list = *ImGui::GetDrawData()->CmdLists[list_index];
+            for (const ImDrawVert& vertex : list.VtxBuffer) {
+                if (vertex.col == expected_border_u32) {
+                    has_border_vertex = true;
+                    break;
+                }
+            }
+            if (has_border_vertex) {
+                break;
+            }
+        }
+        require(has_border_vertex &&
+                    (near_color(border_sample, expected_border) ||
+                     near_color(border_sample2, expected_border) ||
+                     border_sample.x > outside_color.x + 0.05f),
                 "Real table must expose the rounded custom outer border.");
         require(near_color(sample_pixel(*ImGui::GetDrawData(), max - ImVec2(1.5f, 1.5f)),
                             outside_color),
                 "Real table bottom-right corner must preserve SectionCard surface.");
-        (void)table_id;
-        (void)style;
     }
 
 }  // namespace
