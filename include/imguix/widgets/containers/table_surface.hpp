@@ -25,6 +25,16 @@ namespace ImGuiX::Widgets {
     void DrawTableSurfaceBackground(ImDrawList* draw_list,
                                     const TableSurfaceGeometry& geometry);
 
+    /// \brief Draw a rounded outer border for a table surface.
+    /// \param draw_list Table-owned draw list; never a global foreground list.
+    /// \param geometry Table bounds and effective clipping.
+    /// \param border_color Border color in packed ImGui format.
+    /// \param thickness Border thickness in pixels.
+    void DrawTableSurfaceBorder(ImDrawList* draw_list,
+                                const TableSurfaceGeometry& geometry,
+                                ImU32 border_color,
+                                float thickness = 1.0f);
+
     /// \brief Restore rounded corner pixels above rectangular table contents.
     ///
     /// The supplied clip rectangle is intersected with the surface bounds so

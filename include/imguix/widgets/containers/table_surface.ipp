@@ -14,6 +14,29 @@ namespace ImGuiX::Widgets {
                                  geometry.rounding, ImDrawFlags_RoundCornersAll);
     }
 
+    IMGUIX_IMPL_INLINE void DrawTableSurfaceBorder(
+        ImDrawList* draw_list, const TableSurfaceGeometry& geometry,
+        const ImU32 border_color, const float thickness) {
+        if (draw_list == nullptr || geometry.max.x <= geometry.min.x ||
+            geometry.max.y <= geometry.min.y || thickness <= 0.0f) {
+            return;
+        }
+        const ImVec2 clip_min(std::max(geometry.min.x, geometry.clip_min.x),
+                              std::max(geometry.min.y, geometry.clip_min.y));
+        const ImVec2 clip_max(std::min(geometry.max.x, geometry.clip_max.x),
+                              std::min(geometry.max.y, geometry.clip_max.y));
+        if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y) {
+            return;
+        }
+        const float half = thickness * 0.5f;
+        const float radius = std::max(0.0f, geometry.rounding - half);
+        draw_list->PushClipRect(clip_min, clip_max, false);
+        draw_list->AddRect(geometry.min + ImVec2(half, half),
+                           geometry.max - ImVec2(half, half), border_color, radius,
+                           ImDrawFlags_RoundCornersAll, thickness);
+        draw_list->PopClipRect();
+    }
+
     namespace detail {
 
         IMGUIX_IMPL_INLINE void draw_table_corner(ImDrawList* draw_list,
