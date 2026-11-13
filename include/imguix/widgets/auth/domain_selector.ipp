@@ -55,9 +55,10 @@ namespace ImGuiX::Widgets {
                     items.data(),
                     static_cast<int>(items.size()))) {
                 if (combo_index == static_cast<int>(cfg.domains.size())) {
-                    if (!cfg.default_domain.empty()) {
-                        host = cfg.default_domain;
-                    }
+                    // Selecting Custom must leave the host outside the preset list.
+                    // Otherwise next frame derives the preset again and hides the input.
+                    // An empty default_domain intentionally starts a blank custom URL.
+                    host = cfg.default_domain;
                 } else {
                     host = cfg.domains[combo_index];
                 }
