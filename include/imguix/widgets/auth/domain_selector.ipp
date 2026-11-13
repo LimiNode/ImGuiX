@@ -37,7 +37,15 @@ namespace ImGuiX::Widgets {
             }
             items.push_back(cfg.custom_text.c_str());
 
-            int combo_index = st->GetInt(key_combo_index, (static_cast<int>(items.size()) - 1));
+            // Derive the preset from the persisted value every frame. This keeps the combo
+            // correct when the editor switches accounts or reloads a profile with a new host.
+            int combo_index = static_cast<int>(items.size()) - 1;
+            for (int index = 0; index < static_cast<int>(cfg.domains.size()); ++index) {
+                if (cfg.domains[static_cast<std::size_t>(index)] == host) {
+                    combo_index = index;
+                    break;
+                }
+            }
             if (combo_index < 0) combo_index = static_cast<int>(items.size()) - 1;
             if (combo_index >= static_cast<int>(items.size())) combo_index = static_cast<int>(items.size()) - 1;
 
@@ -47,7 +55,9 @@ namespace ImGuiX::Widgets {
                     items.data(),
                     static_cast<int>(items.size()))) {
                 if (combo_index == static_cast<int>(cfg.domains.size())) {
-                    host = cfg.default_domain;
+                    if (!cfg.default_domain.empty()) {
+                        host = cfg.default_domain;
+                    }
                 } else {
                     host = cfg.domains[combo_index];
                 }

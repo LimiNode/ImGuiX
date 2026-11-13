@@ -34,8 +34,9 @@ namespace ImGuiX::Widgets {
         ImGuiX::Widgets::InputValidatePolicy policy = ImGuiX::Widgets::InputValidatePolicy::OnTouch;
         ImVec4      error_color = IMGUIX_COLOR_ERROR;
 
-        // Pragmatic host/domain pattern (allows subdomains and optional :port)
-        const char* domain_regex = u8R"(^[A-Za-z0-9.\-:]+$)";
+        // Accept a provider URL, including an optional path/query, while rejecting whitespace.
+        const char* domain_regex =
+            u8R"(^[A-Za-z][A-Za-z0-9+.-]*://[A-Za-z0-9.\-:]+(/[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]*)?$)";
 
         // VK trigger + keyboard configs
         bool vk_enabled = true;
