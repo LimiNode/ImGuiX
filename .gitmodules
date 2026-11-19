@@ -39,23 +39,23 @@
 	url = https://github.com/dalerank/imspinner.git
 [submodule "libs/ImGuiColorTextEdit"]
 	path = libs/ImGuiColorTextEdit
-	url = https://github.com/NewYaroslav/ImGuiColorTextEdit.git
+	url = https://github.com/LimiNode/ImGuiColorTextEdit.git
 [submodule "libs/imgui-command-palette"]
 	path = libs/imgui-command-palette
 	url = https://github.com/pthom/imgui-command-palette
 [submodule "libs/ImCoolBar"]
 	path = libs/ImCoolBar
-	url = https://github.com/NewYaroslav/ImCoolBar.git
+	url = https://github.com/LimiNode/ImCoolBar.git
 [submodule "libs/md4c"]
 	path = libs/md4c
 	url = https://github.com/mity/md4c
 [submodule "libs/imgui_md"]
 	path = libs/imgui_md
-	url = https://github.com/NewYaroslav/imgui_md.git
+	url = https://github.com/LimiNode/imgui_md.git
 	branch = main
 [submodule "libs/aescpp"]
 	path = libs/aescpp
-	url = https://github.com/NewYaroslav/aescpp.git
+	url = https://github.com/LimiNode/aes-cpp.git
 [submodule "libs/hmac-cpp"]
 	path = libs/hmac-cpp
-	url = https://github.com/NewYaroslav/hmac-cpp.git
+	url = https://github.com/LimiNode/hmac-cpp.git
