@@ -38,10 +38,17 @@ namespace ImGuiX::Widgets {
         // Geometry AA also avoids depending on the backend's line atlas.
         const ImDrawListFlags saved_flags = draw_list->Flags;
         draw_list->Flags &= ~ImDrawListFlags_AntiAliasedLinesUseTex;
-        draw_list->PathRect(geometry.min + ImVec2(half, half),
-                            geometry.max - ImVec2(half, half), radius,
-                            ImDrawFlags_RoundCornersAll);
-        draw_list->PathStroke(border_color, ImDrawFlags_Closed, thickness);
+        const auto stroke = [&](const ImU32 color) {
+            draw_list->PathRect(geometry.min + ImVec2(half, half),
+                                geometry.max - ImVec2(half, half), radius,
+                                ImDrawFlags_RoundCornersAll);
+            draw_list->PathStroke(color, ImDrawFlags_Closed, thickness);
+        };
+        // Native inner grid lines can terminate under the outer stroke (the
+        // last row/column is still resizable). Restore its opaque surface first
+        // so a translucent theme border is blended once, not over another line.
+        stroke(geometry.surface_color);
+        stroke(border_color);
         draw_list->Flags = saved_flags;
         draw_list->PopClipRect();
     }

@@ -12,6 +12,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -84,7 +85,9 @@ namespace {
         }
     }
 
-    void verify(float scale, bool scroll, bool clipped, bool pearl, const char* output) {
+    std::vector<ImVec4> verify(float scale, bool scroll, bool clipped, bool pearl,
+                              const char* output, bool is_grid_visible = true,
+                              bool has_translucent_border = false) {
         const ImU32 outside_color = pearl ? IM_COL32(235, 240, 248, 255) : kOutside;
         ImGui::CreateContext();
         auto& io = ImGui::GetIO();
@@ -97,6 +100,11 @@ namespace {
         ImGui::GetStyle().Colors[ImGuiCol_TableHeaderBg] = ImVec4(0.1f, 0.5f, 0.85f, 1);
         ImGui::GetStyle().Colors[ImGuiCol_TableRowBg] = ImVec4(0.8f, 0.1f, 0.7f, 1);
         ImGui::GetStyle().Colors[ImGuiCol_TableRowBgAlt] = ImVec4(0.1f, 0.7f, 0.3f, 1);
+        ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight] =
+            is_grid_visible ? ImVec4(0.9f, 0.15f, 0.1f, 0.8f) : ImVec4();
+        ImGui::GetStyle().Colors[ImGuiCol_TableBorderStrong] =
+            ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight];
+        const ImU32 border_color = has_translucent_border ? IM_COL32(255, 80, 20, 128) : kBorder;
         ImGuiX::Widgets::TableSurfaceGeometry geometry;
         for (int frame = 0; frame < 3; ++frame) {
             ImGui::NewFrame();
@@ -141,7 +149,7 @@ namespace {
                 // The public geometry must follow EndTable's final content height.
                 geometry.max = table->OuterRect.Max;
                 ImGuiX::Widgets::CoverTableSurfaceCorners(draw_list, geometry);
-                ImGuiX::Widgets::DrawTableSurfaceBorder(draw_list, geometry, kBorder);
+                ImGuiX::Widgets::DrawTableSurfaceBorder(draw_list, geometry, border_color);
             }
             if (clipped) ImGui::PopClipRect();
             ImGuiX::Widgets::EndRoundedPanel();
@@ -160,9 +168,9 @@ namespace {
             if (pixel.x < geometry.clip_min.x || pixel.x >= geometry.clip_max.x ||
                 pixel.y < geometry.clip_min.y || pixel.y >= geometry.clip_max.y) continue;
             const ImVec4 actual = sample(*ImGui::GetDrawData(), pixel);
-            if (std::fabs(actual.x - expected_border.x) > 0.1f ||
+            if (!has_translucent_border && (std::fabs(actual.x - expected_border.x) > 0.1f ||
                 std::fabs(actual.y - expected_border.y) > 0.1f ||
-                std::fabs(actual.z - expected_border.z) > 0.1f) {
+                std::fabs(actual.z - expected_border.z) > 0.1f)) {
                 throw std::runtime_error("Table border has incomplete centre coverage");
             }
         }
@@ -180,13 +188,42 @@ namespace {
                 }
             }
         }
+        std::vector<ImVec4> edge_pixels;
+        // Compare the final outer stroke with and without the native grid.
+        // An opaque test border would conceal an overlapping final-column line.
+        for (float inset : {-0.5f, 0.5f, 1.5f}) {
+            for (ImVec2 pixel : {ImVec2(geometry.min.x + inset, centre.y + 3.0f),
+                                 ImVec2(geometry.max.x - inset, centre.y + 3.0f),
+                                 ImVec2(centre.x + 3.0f, geometry.min.y + inset),
+                                 ImVec2(centre.x + 3.0f, geometry.max.y - inset)}) {
+                edge_pixels.push_back(sample(*ImGui::GetDrawData(), pixel));
+            }
+        }
         ImGui::DestroyContext();
         if (leaks) throw std::runtime_error("Table corner pixels leaked: " + std::to_string(leaks));
+        return edge_pixels;
     }
 }
 
 int main(int argc, char** argv) {
     try {
+        for (float scale : {1.0f, 1.5f, 2.0f}) {
+            for (bool scroll : {false, true}) {
+                const auto with_grid = verify(scale, scroll, false, false, nullptr, true, true);
+                const auto without_grid = verify(scale, scroll, false, false, nullptr, false, true);
+                for (std::size_t index = 0; index < with_grid.size(); ++index) {
+                    const ImVec4 actual = with_grid[index];
+                    const ImVec4 expected = without_grid[index];
+                    if (std::fabs(actual.x - expected.x) > 0.04f ||
+                        std::fabs(actual.y - expected.y) > 0.04f ||
+                        std::fabs(actual.z - expected.z) > 0.04f) {
+                        throw std::runtime_error("Native grid overlaps rounded outer border: scale=" +
+                                                 std::to_string(scale) + " pixel=" +
+                                                 std::to_string(index));
+                    }
+                }
+            }
+        }
         for (float scale : {1.0f, 1.25f, 1.5f, 2.0f}) for (bool scroll : {false, true})
             for (bool clipped : {false, true})
                 for (bool pearl : {false, true})

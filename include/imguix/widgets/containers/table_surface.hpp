@@ -26,7 +26,9 @@ namespace ImGuiX::Widgets {
     void DrawTableSurfaceBackground(ImDrawList* draw_list,
                                     const TableSurfaceGeometry& geometry);
 
-    /// \brief Draw a rounded outer border for a table surface.
+    /// \brief Draw a rounded outer border over an opaque surface underlay.
+    /// Native inner grid endpoints are removed beneath the stroke so theme
+    /// alpha does not compound with a second border line.
     /// \param draw_list Table-owned draw list; never a global foreground list.
     /// \param geometry Table bounds and effective clipping.
     /// \param border_color Border color in packed ImGui format.
