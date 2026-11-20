@@ -10,8 +10,10 @@ namespace ImGuiX::Widgets {
             geometry.max.y <= geometry.min.y) {
             return;
         }
+        draw_list->PushClipRect(geometry.clip_min, geometry.clip_max, true);
         draw_list->AddRectFilled(geometry.min, geometry.max, geometry.surface_color,
                                  geometry.rounding, ImDrawFlags_RoundCornersAll);
+        draw_list->PopClipRect();
     }
 
     IMGUIX_IMPL_INLINE void DrawTableSurfaceBorder(
@@ -31,9 +33,16 @@ namespace ImGuiX::Widgets {
         const float half = thickness * 0.5f;
         const float radius = std::max(0.0f, geometry.rounding - half);
         draw_list->PushClipRect(clip_min, clip_max, false);
-        draw_list->AddRect(geometry.min + ImVec2(half, half),
-                           geometry.max - ImVec2(half, half), border_color, radius,
-                           ImDrawFlags_RoundCornersAll, thickness);
+        // Coordinates already describe the stroke centre. AddRect adds its
+        // own half-pixel inset, splitting a 1px edge over two translucent rows.
+        // Geometry AA also avoids depending on the backend's line atlas.
+        const ImDrawListFlags saved_flags = draw_list->Flags;
+        draw_list->Flags &= ~ImDrawListFlags_AntiAliasedLinesUseTex;
+        draw_list->PathRect(geometry.min + ImVec2(half, half),
+                            geometry.max - ImVec2(half, half), radius,
+                            ImDrawFlags_RoundCornersAll);
+        draw_list->PathStroke(border_color, ImDrawFlags_Closed, thickness);
+        draw_list->Flags = saved_flags;
         draw_list->PopClipRect();
     }
 
@@ -55,22 +64,22 @@ namespace ImGuiX::Widgets {
                 case 0:
                     draw_list->PathLineTo(geometry.min);
                     draw_list->PathArcTo(ImVec2(geometry.min.x + radius, geometry.min.y + radius),
-                                         radius, pi * 1.5f, pi, 8);
+                                         radius, pi * 1.5f, pi, 0);
                     break;
                 case 1:
                     draw_list->PathLineTo(ImVec2(geometry.max.x, geometry.min.y));
                     draw_list->PathArcTo(ImVec2(geometry.max.x - radius, geometry.min.y + radius),
-                                         radius, 0.0f, -pi * 0.5f, 8);
+                                         radius, 0.0f, -pi * 0.5f, 0);
                     break;
                 case 2:
                     draw_list->PathLineTo(geometry.max);
                     draw_list->PathArcTo(ImVec2(geometry.max.x - radius, geometry.max.y - radius),
-                                         radius, pi * 0.5f, 0.0f, 8);
+                                         radius, pi * 0.5f, 0.0f, 0);
                     break;
                 case 3:
                     draw_list->PathLineTo(ImVec2(geometry.min.x, geometry.max.y));
                     draw_list->PathArcTo(ImVec2(geometry.min.x + radius, geometry.max.y - radius),
-                                         radius, pi, pi * 0.5f, 8);
+                                         radius, pi, pi * 0.5f, 0);
                     break;
                 default:
                     return;
