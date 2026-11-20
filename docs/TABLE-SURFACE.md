@@ -11,7 +11,8 @@ The border uses a stroke centre inset by half its thickness. It uses `PathRect`
 and `PathStroke` directly: `AddRect` adds another half-pixel inset and divides a
 one-pixel edge between two translucent pixel rows. Geometry-based line AA is
 scoped to the border; later draw-list flags remain unchanged. Corner arcs use
-Dear ImGui's adaptive subdivision rather than a fixed eight segments.
+Dear ImGui's adaptive subdivision with a minimum of eight segments per quadrant
+to retain subpixel precision at small radii.
 
 ## Regression evidence
 
@@ -25,8 +26,8 @@ text readability, or interaction.
 
 The new border-centre assertion fails against `f8dd4c6` with
 `Table border has incomplete centre coverage`. The corrected implementation
-passes in MinGW Debug and Release, in header-only and separately compiled
-widget modes. Both images below are software rasterizations of final draw
+passes in MinGW Debug/Release and MSVC 19.44 Release, in header-only and
+separately compiled widget modes. Both images below are software rasterizations of final draw
 data from the same real-table fixture, not hand-drawn mockups.
 
 Before:
