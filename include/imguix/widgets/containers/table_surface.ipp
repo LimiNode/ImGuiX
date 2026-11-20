@@ -59,27 +59,30 @@ namespace ImGuiX::Widgets {
             if (radius <= 0.0f) {
                 return;
             }
+            // Preserve the small-radius mask's existing subpixel accuracy;
+            // grow subdivision with radius when the normal AA tolerance needs it.
+            const int segments = std::max(8, (draw_list->_CalcCircleAutoSegmentCount(radius) + 3) / 4);
             draw_list->PathClear();
             switch (corner) {
                 case 0:
                     draw_list->PathLineTo(geometry.min);
                     draw_list->PathArcTo(ImVec2(geometry.min.x + radius, geometry.min.y + radius),
-                                         radius, pi * 1.5f, pi, 0);
+                                         radius, pi * 1.5f, pi, segments);
                     break;
                 case 1:
                     draw_list->PathLineTo(ImVec2(geometry.max.x, geometry.min.y));
                     draw_list->PathArcTo(ImVec2(geometry.max.x - radius, geometry.min.y + radius),
-                                         radius, 0.0f, -pi * 0.5f, 0);
+                                         radius, 0.0f, -pi * 0.5f, segments);
                     break;
                 case 2:
                     draw_list->PathLineTo(geometry.max);
                     draw_list->PathArcTo(ImVec2(geometry.max.x - radius, geometry.max.y - radius),
-                                         radius, pi * 0.5f, 0.0f, 0);
+                                         radius, pi * 0.5f, 0.0f, segments);
                     break;
                 case 3:
                     draw_list->PathLineTo(ImVec2(geometry.min.x, geometry.max.y));
                     draw_list->PathArcTo(ImVec2(geometry.min.x + radius, geometry.max.y - radius),
-                                         radius, pi, pi * 0.5f, 0);
+                                         radius, pi, pi * 0.5f, segments);
                     break;
                 default:
                     return;
